@@ -4,18 +4,17 @@ JFLEX=jflex
 CLASSPATH=-cp /usr/share/java/cup.jar:.
 CUP=cup
 
-# all: Main.class
+all: Main.class
 
-# Main.class: absyn/*.java parser.java sym.java Lexer.java ShowTreeVisitor.java Scanner.java Main.java
-# Main.class: Scanner.java
+Main.class: absyn/*.java parser.java sym.java Lexer.java ShowTreeVisitor.java Scanner.java Main.java
 
 %.class: %.java
 	$(JAVAC) $(CLASSPATH) $^
 
-Lexer.java: tiny.flex
-	$(JFLEX) tiny.flex
+Lexer.java: cminus.flex
+	$(JFLEX) cminus.flex
 
-parser.java: tiny.cup
+parser.java: cminus.cup
 	$(CUP) -expect 3 cminus.cup
 
 clean:
