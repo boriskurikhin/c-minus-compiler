@@ -80,6 +80,12 @@ public class ShowTreeVisitor implements AbsynVisitor {
       case OpExp.GREATERTHAN:
         System.out.println( " > " );
         break;
+      case OpExp.LESSTHANEQ:
+        System.out.println( " <= " );
+        break;
+      case OpExp.GREATERTHANEQ:
+        System.out.println( " >= " );
+        break;
       default:
         System.out.println( "Unrecognized operator at line " + exp.row + " and column " + exp.col);
     }
@@ -146,8 +152,8 @@ public class ShowTreeVisitor implements AbsynVisitor {
     indent( level );
     System.out.println( "RepeatExp:" );
     level++;
-    exp.exps.accept( this, level );
     exp.test.accept( this, level ); 
+    exp.statement.accept( this, level );
   }
 
   public void visit ( VariableType exp, int level) {
@@ -169,6 +175,14 @@ public class ShowTreeVisitor implements AbsynVisitor {
     level++;
     if (exp.args != null)
       exp.args.accept(this, level);
+  }
+
+  public void visit(ReturnExp exp, int level) {
+    indent(level);
+    System.out.println("ReturnExp: ");
+    level++;
+    if (exp.expression != null)
+      exp.expression.accept(this, level);
   }
 
   public void visit( WriteExp exp, int level ) {

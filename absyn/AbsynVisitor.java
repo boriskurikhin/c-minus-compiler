@@ -36,4 +36,6 @@ public interface AbsynVisitor {
 
   public void visit(CallExpression exp, int level);
 
+  public void visit(ReturnExp exp, int level);
+
 }

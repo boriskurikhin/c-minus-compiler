@@ -25,7 +25,7 @@ non terminal VarDeclaration parameter, variable_declaration;
 non terminal VarDeclarationList parameter_list, block_declarations;
 non terminal CompoundStatement compound_statement;
 non terminal ExpList statement_list, expression_list;
-non terminal Exp expression, statement, exp_statement, compare_exp, math_exp, other_exp;
+non terminal Exp expression, statement, exp_statement, compare_exp, math_exp, other_exp, if_statement, loop_statement, return_statement;
 non terminal VariableExp var;
 
 
@@ -191,7 +191,6 @@ statement_list       ::= statement_list:statement_list statement:statement
                         :}
                      ;
 
-/* TODO: return here and other the 3 missing statements */
 statement            ::= exp_statement:exp_s
                         {:
                            RESULT = exp_s;
@@ -199,6 +198,18 @@ statement            ::= exp_statement:exp_s
                      | compound_statement:comp_s
                         {:
                            RESULT = comp_s;
+                        :}
+                     | if_statement:if_s 
+                        {:
+                           RESULT = if_s;
+                        :}
+                     | loop_statement:loop_s
+                        {:
+                           RESULT = loop_s; 
+                        :}
+                     | return_statement:ret_s 
+                        {:
+                           RESULT = ret_s;
                         :}
                      ;
 
@@ -209,6 +220,32 @@ exp_statement        ::= expression:exp SEMICOLON
                      | SEMICOLON 
                         {:
                            RESULT = null;
+                        :}
+                     ;
+
+if_statement         ::= IF:i LBRACKET expression:exp RBRACKET statement:sment
+                        {:
+                           RESULT = new IfExp(ileft, iright, exp, sment, null);
+                        :}
+                     | IF:i LBRACKET expression:exp RBRACKET statement:sment1 ELSE statement:sment2
+                        {:
+                           RESULT = new IfExp(ileft, iright, exp, sment1, sment2);
+                        :}
+                     ;
+
+loop_statement       ::= WHILE:loop LBRACKET expression:exp RBRACKET statement:sment 
+                        {:
+                           RESULT = new RepeatExp(loopleft, loopright, exp, sment);
+                        :}
+                     ;
+
+return_statement     ::= RETURN:ret expression:exp SEMICOLON
+                        {:
+                           RESULT = new ReturnExp(retleft, retright, exp);
+                        :}
+                     | RETURN:ret SEMICOLON
+                        {:
+                           RESULT = new ReturnExp(retleft, retright, null);
                         :}
                      ;
 
