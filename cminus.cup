@@ -21,6 +21,9 @@ terminal ERROR;
    
 non terminal DeclarationList program, declaration_list;
 non terminal Declaration declaration, variable_declaration, function_declaration;
+non terminal VarDeclaration parameter;
+non terminal VarDeclarationList parameter_list;
+non terminal CompoundStatement compound_statement;
 
 /* ----------------------------Grammar Section-------------------- */
    
@@ -49,14 +52,12 @@ declaration          ::= variable_declaration:var_d
                         {:
                            RESULT = var_d;
                         :}
-                     ;
-/*                     | function_declaration:func_d
+                     | function_declaration:func_d
                         {:
                            RESULT = func_d;
                         :}
-                     ; */
+                     ;
 
-/* INT K; */
 variable_declaration ::= INT:type ID:id SEMICOLON
                         {:
                            RESULT = new NoValDeclaration(
@@ -75,5 +76,78 @@ variable_declaration ::= INT:type ID:id SEMICOLON
                               id,
                               new IntExp(sizeleft, sizeright, size)
                            );
+                        :}
+                     ;
+
+function_declaration ::= INT:type ID:id LBRACKET parameter_list:params RBRACKET compound_statement:statement
+                           {:
+                              RESULT = new FunctionDeclaration(
+                                 idleft,
+                                 idright,
+                                 new VariableType(typeleft, typeright, VariableType.INT),
+                                 id,
+                                 params,
+                                 statement
+                              );
+                           :}
+                        | VOID:type ID:id LBRACKET parameter_list:params RBRACKET compound_statement:statement
+                           {:
+                              RESULT = new FunctionDeclaration(
+                                 idleft,
+                                 idright,
+                                 new VariableType(typeleft, typeright, VariableType.VOID),
+                                 id,
+                                 params,
+                                 statement
+                              );
+                           :}
+                        ;
+
+parameter_list       ::= parameter_list:list COMMA parameter:param
+                        {:
+                           VarDeclarationList param_list = list;
+                           while (param_list.tail != null) {
+                              param_list = param_list.tail;
+                           }
+                           param_list.tail = new VarDeclarationList(param, null);
+                           RESULT = list;
+                        :}
+                     | parameter:param
+                        {:
+                           RESULT = new VarDeclarationList(param, null);
+                        :}
+                     | VOID 
+                        {:
+                           RESULT = null;
+                        :}
+                     | 
+                        {:
+                           RESULT = null;
+                        :};
+
+parameter            ::= INT:type ID:id LSQUAREBRACKET RSQUAREBRACKET
+                        {:
+                           RESULT = new ArrayDeclaration(
+                              typeleft,
+                              typeright,
+                              new VariableType(typeleft, typeright, VariableType.INT),
+                              id,
+                              null
+                           );
+                        :}
+                     | INT:type ID:id
+                        {:
+                           RESULT = new NoValDeclaration(
+                              typeleft,
+                              typeright, 
+                              id,
+                              new VariableType(typeleft, typeright, VariableType.INT)
+                           );
+                        :}
+                     ;
+
+compound_statement   ::= LCURLYBRACKET RCURLYBRACKET
+                        {:
+                           RESULT = new CompoundStatement(testleft, testright, null, null);
                         :}
                      ;

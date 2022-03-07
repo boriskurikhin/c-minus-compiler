@@ -1,6 +1,6 @@
 package absyn;
 
-public class ArrayDeclaration extends Declaration {
+public class ArrayDeclaration extends VarDeclaration {
     
     public VariableType type;
     public String name;

@@ -28,4 +28,10 @@ public interface AbsynVisitor {
 
   public void visit (NoValDeclaration exp, int level);
 
+  public void visit (CompoundStatement exp, int level);
+
+  public void visit (FunctionDeclaration exp, int level);
+
+  public void visit (VarDeclarationList exp, int level);
+
 }

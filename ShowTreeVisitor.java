@@ -10,8 +10,15 @@ public class ShowTreeVisitor implements AbsynVisitor {
 
   public void visit( ExpList expList, int level ) {
     while( expList != null ) {
-      expList.head.accept( this, level );
+      if (expList.head != null) expList.head.accept( this, level );
       expList = expList.tail;
+    } 
+  }
+
+  public void visit(VarDeclarationList exp, int level) {
+    while( exp != null ) {
+      if (exp.head != null) exp.head.accept( this, level );
+      exp = exp.tail;
     } 
   }
 
@@ -104,6 +111,35 @@ public class ShowTreeVisitor implements AbsynVisitor {
     } else {
       System.out.println(exp.size.value + "]");
     }
+  }
+
+  public void visit(FunctionDeclaration exp, int level) {
+    indent(level);
+    String funcType = (exp.type.type == VariableType.VOID ? "VOID" : "INT");
+    System.out.println("FunctionDeclaration: " + funcType + " " + exp.name + " ");
+    level++;
+    
+    if (exp.parameters != null)
+      exp.parameters.accept(this, level);
+
+    if (exp.body != null)
+      exp.body.accept(this, level);
+
+  }
+
+  public void visit(CompoundStatement statement, int level) {
+    indent(level);
+    System.out.println("CompoundStatement: ");
+
+    if (statement.declarations != null || statement.expressions != null)
+      level++;
+      
+    if (statement.declarations != null)
+      statement.declarations.accept(this, level);
+
+    if (statement.expressions != null)
+      statement.expressions.accept(this, level);
+
   }
 
   public void visit( RepeatExp exp, int level ) {

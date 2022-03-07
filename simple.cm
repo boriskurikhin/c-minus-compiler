@@ -5,3 +5,15 @@ int k;
 
 
 int m[50];
+
+
+int test(int a, int k[], int b) {
+
+}
+
+void test(void){
+    
+}
+
+void testagain(){
+}
