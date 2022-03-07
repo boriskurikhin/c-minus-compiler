@@ -16,8 +16,16 @@ public interface AbsynVisitor {
 
   public void visit( RepeatExp exp, int level );
 
-  public void visit( VarExp exp, int level );
+  public void visit( VariableExp exp, int level );
 
   public void visit( WriteExp exp, int level );
+
+  public void visit (ArrayDeclaration exp, int level);
+
+  public void visit (DeclarationList exp, int level);
+
+  public void visit (VariableType exp, int level);
+
+  public void visit (NoValDeclaration exp, int level);
 
 }

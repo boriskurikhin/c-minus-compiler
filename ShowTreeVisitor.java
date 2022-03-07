@@ -38,6 +38,16 @@ public class ShowTreeVisitor implements AbsynVisitor {
     System.out.println( "IntExp: " + exp.value ); 
   }
 
+  public void visit(NoValDeclaration exp, int level) {
+    indent( level );
+    System.out.print( "NoValDeclaration: " );
+    if (exp.type.type == VariableType.VOID) {
+      System.out.println("VOID " + exp.name);
+    } else if (exp.type.type == VariableType.INT) {
+      System.out.println("INT " + exp.name);
+    }
+  }
+
   public void visit( OpExp exp, int level ) {
     indent( level );
     System.out.print( "OpExp:" ); 
@@ -77,6 +87,25 @@ public class ShowTreeVisitor implements AbsynVisitor {
     exp.input.accept( this, ++level );
   }
 
+  public void visit(DeclarationList exp, int level) {
+    while( exp != null ) {
+      exp.head.accept( this, level );
+      exp = exp.tail;
+    }
+  }
+
+  public void visit(ArrayDeclaration exp, int level) {
+    indent(level);
+    String arrType = (exp.type.type == VariableType.VOID ? "VOID" : "INT");
+    System.out.print("ArrayDeclaration: " + arrType + " " + exp.name + " [");
+
+    if (exp.size == null || exp.size.value == null) {
+      System.out.println("]");
+    } else {
+      System.out.println(exp.size.value + "]");
+    }
+  }
+
   public void visit( RepeatExp exp, int level ) {
     indent( level );
     System.out.println( "RepeatExp:" );
@@ -85,9 +114,14 @@ public class ShowTreeVisitor implements AbsynVisitor {
     exp.test.accept( this, level ); 
   }
 
-  public void visit( VarExp exp, int level ) {
+  public void visit ( VariableType exp, int level) {
+    indent(level);
+    System.out.println("VariableType: " + (exp.type == VariableType.VOID ? "VOID" : "INT"));
+  }
+
+  public void visit( VariableExp exp, int level ) {
     indent( level );
-    System.out.println( "VarExp: " + exp.name );
+    System.out.println( "VariableExp: " + exp.name );
   }
 
   public void visit( WriteExp exp, int level ) {

@@ -19,30 +19,61 @@ terminal PLUS, MINUS, TIMES, DIVIDE, LBRACKET, RBRACKET, SEMICOLON, LSQUAREBRACK
 terminal String ID, NUMBER;
 terminal ERROR;
    
-non terminal Exp program;
-non terminal Exp exp, term, factor;
-
-precedence left PLUS, MINUS;
-precedence left TIMES, DIVIDE;
+non terminal DeclarationList program, declaration_list;
+non terminal Declaration declaration, variable_declaration, function_declaration;
 
 /* ----------------------------Grammar Section-------------------- */
    
 start with program;
 
 
-program	     ::= exp:e
-                 {: RESULT = e; :}
-               ;
+program	            ::= declaration_list:dec_list
+                        {: RESULT = dec_list; :}
+                     ;
 
-exp          ::= exp:e1 PLUS exp:e2
-                  {: RESULT = new OpExp(e1left, e2right, e1, OpExp.PLUS, e2); :}
-               | exp:e1 TIMES exp:e2
-                  {: RESULT = new OpExp(e1left, e2right, e1, OpExp.TIMES, e2); :}
-               | factor:f
-                  {: RESULT = f; :}
-               ;
+declaration_list     ::= declaration_list:dec_list declaration:dec
+                        {:
+                           DeclarationList list = dec_list;
+                           while( list.tail != null )
+                              list = list.tail;
+                           list.tail = new DeclarationList(dec, null);
+                           RESULT = dec_list;
+                        :}
+                     | declaration:dec
+                        {:
+                           RESULT = new DeclarationList(dec, null);
+                        :}
+                     ;
 
-factor       ::= NUMBER:n
-                 {: RESULT = new IntExp(nleft, nright, n); :}
-               ;
+declaration          ::= variable_declaration:var_d
+                        {:
+                           RESULT = var_d;
+                        :}
+                     ;
+/*                     | function_declaration:func_d
+                        {:
+                           RESULT = func_d;
+                        :}
+                     ; */
 
+/* INT K; */
+variable_declaration ::= INT:type ID:id SEMICOLON
+                        {:
+                           RESULT = new NoValDeclaration(
+                              typeleft,
+                              typeright, 
+                              id,
+                              new VariableType(typeleft, typeright, VariableType.INT)
+                           );
+                        :}
+                     | INT:type ID:id LSQUAREBRACKET NUMBER:size RSQUAREBRACKET SEMICOLON
+                        {:
+                           RESULT = new ArrayDeclaration(
+                              typeleft,
+                              typeright,
+                              new VariableType(typeleft, typeright, VariableType.INT),
+                              id,
+                              new IntExp(sizeleft, sizeright, size)
+                           );
+                        :}
+                     ;

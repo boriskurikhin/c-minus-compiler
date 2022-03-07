@@ -1,9 +1,9 @@
 package absyn;
 
 public class ReadExp extends Exp {
-  public VarExp input;
+  public VariableExp input;
 
-  public ReadExp( int row, int col, VarExp input ) {
+  public ReadExp( int row, int col, VariableExp input ) {
     this.row = row;
     this.col = col;
     this.input = input;
