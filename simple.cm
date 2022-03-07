@@ -1,7 +1,7 @@
 int k;
 
 
-
+/*
 
 
 int m[50];
@@ -12,8 +12,17 @@ int test(int a, int k[], int b) {
 }
 
 void test(void){
-    
+} */
+
+void testagain(int y, int x){
+    int x;
+    int m[30];
+
+    x = 3 * (9 + 3) < 3 ;
+
+
+    y = 11;
 }
 
-void testagain(){
-}
+
+void k(){}

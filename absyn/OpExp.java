@@ -8,6 +8,10 @@ public class OpExp extends Exp {
   public final static int CHECKEQUALS    = 4;
   public final static int LESSTHAN    = 5;
   public final static int GREATERTHAN    = 6;
+  public final static int CHECKNOTEQUALS = 7;
+  public final static int LESSTHANEQ = 8;
+  public final static int GREATERTHANEQ = 9;
+
 
   public Exp left;
   public int op;

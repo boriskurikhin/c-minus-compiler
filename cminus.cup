@@ -20,10 +20,20 @@ terminal String ID, NUMBER;
 terminal ERROR;
    
 non terminal DeclarationList program, declaration_list;
-non terminal Declaration declaration, variable_declaration, function_declaration;
-non terminal VarDeclaration parameter;
-non terminal VarDeclarationList parameter_list;
+non terminal Declaration declaration, function_declaration;
+non terminal VarDeclaration parameter, variable_declaration;
+non terminal VarDeclarationList parameter_list, block_declarations;
 non terminal CompoundStatement compound_statement;
+non terminal ExpList statement_list, expression_list;
+non terminal Exp expression, statement, exp_statement, compare_exp, math_exp, other_exp;
+non terminal VariableExp var;
+
+
+precedence right SETEQUALS;
+precedence left COMMA, ELSE, ERROR;
+precedence nonassoc CHECKEQUALS, CHECKNOTEQUALS, LESSTHAN, LESSTHANEQ, GREATERTHAN, GREATERTHANEQ;
+precedence left PLUS, MINUS;
+precedence left TIMES, DIVIDE;
 
 /* ----------------------------Grammar Section-------------------- */
    
@@ -146,8 +156,173 @@ parameter            ::= INT:type ID:id LSQUAREBRACKET RSQUAREBRACKET
                         :}
                      ;
 
-compound_statement   ::= LCURLYBRACKET RCURLYBRACKET
+compound_statement   ::= LCURLYBRACKET block_declarations:declarations statement_list:statements RCURLYBRACKET
                         {:
-                           RESULT = new CompoundStatement(testleft, testright, null, null);
+                           RESULT = new CompoundStatement(declarationsleft, declarationsright, declarations, statements);
+                        :}
+                     ;
+
+
+block_declarations   ::= block_declarations:dec_list variable_declaration:var_dec
+                        {:
+                           VarDeclarationList list = dec_list;
+                           while( list.tail != null )
+                              list = list.tail;
+                           list.tail = new VarDeclarationList(var_dec, null);
+                           RESULT = dec_list;
+                        :}
+                     |
+                        {:
+                           RESULT = new VarDeclarationList(null, null);  
+                        :}
+                     ;
+
+statement_list       ::= statement_list:statement_list statement:statement
+                        {:
+                           ExpList list = statement_list;
+                           while( list.tail != null )
+                              list = list.tail;
+                           list.tail = new ExpList(statement, null);
+                           RESULT = statement_list;
+                        :}
+                     | 
+                        {:
+                           RESULT = new ExpList(null, null);
+                        :}
+                     ;
+
+/* TODO: return here and other the 3 missing statements */
+statement            ::= exp_statement:exp_s
+                        {:
+                           RESULT = exp_s;
+                        :}
+                     | compound_statement:comp_s
+                        {:
+                           RESULT = comp_s;
+                        :}
+                     ;
+
+exp_statement        ::= expression:exp SEMICOLON
+                        {:
+                           RESULT = exp;
+                        :}
+                     | SEMICOLON 
+                        {:
+                           RESULT = null;
+                        :}
+                     ;
+
+/* X = 5; X[3] = 3; */
+/* X < 3 */
+/* 7 + 4 + X, (X) */
+expression           ::= var:v SETEQUALS expression:exp
+                        {:
+                           RESULT = new AssignExp(vleft, vright, v, exp);
+                        :}
+                     | compare_exp:exp
+                        {:
+                           RESULT = exp;
+                        :}
+                     | math_exp:exp
+                        {:
+                           RESULT = exp;
+                        :}
+                     | other_exp:exp 
+                        {:
+                           RESULT = exp;
+                        :}
+                     ;
+
+var                  ::= ID:id
+                        {:
+                           RESULT = new VariableExp(idleft, idright, id, null);
+                        :}
+                     | ID:id LSQUAREBRACKET expression:exp RSQUAREBRACKET
+                        {:
+                           RESULT = new VariableExp(idleft, idright, id, exp);
+                        :}
+                     | ;
+
+compare_exp          ::= expression:exp1 LESSTHANEQ expression:exp2
+                        {:
+                           RESULT = new OpExp(exp1left, exp2right, exp1, OpExp.LESSTHANEQ, exp2);
+                        :}
+                     | expression:exp1 GREATERTHANEQ expression:exp2
+                        {:
+                           RESULT = new OpExp(exp1left, exp2right, exp1, OpExp.GREATERTHANEQ, exp2);
+                        :}
+                     | expression:exp1 LESSTHAN expression:exp2
+                        {:
+                           RESULT = new OpExp(exp1left, exp2right, exp1, OpExp.LESSTHAN, exp2);
+                        :}
+                     | expression:exp1 GREATERTHAN expression:exp2
+                        {:
+                           RESULT = new OpExp(exp1left, exp2right, exp1, OpExp.GREATERTHAN, exp2);
+                        :}
+                     | expression:exp1 CHECKNOTEQUALS expression:exp2
+                        {:
+                           RESULT = new OpExp(exp1left, exp2right, exp1, OpExp.CHECKNOTEQUALS, exp2);
+                        :}
+                     | expression:exp1 CHECKEQUALS expression:exp2
+                        {:
+                           RESULT = new OpExp(exp1left, exp2right, exp1, OpExp.CHECKEQUALS, exp2);
+                        :}
+                     ;
+
+math_exp             ::= expression:exp1 PLUS expression:exp2
+                        {:
+                           RESULT = new OpExp(exp1left, exp2right, exp1, OpExp.PLUS, exp2);
+                        :}
+                     | expression:exp1 MINUS expression:exp2
+                        {:
+                           RESULT = new OpExp(exp1left, exp2right, exp1, OpExp.MINUS, exp2);
+                        :}
+                     | expression:exp1 TIMES expression:exp2
+                        {:
+                           RESULT = new OpExp(exp1left, exp2right, exp1, OpExp.TIMES, exp2);
+                        :}
+                     | expression:exp1 DIVIDE expression:exp2
+                        {:
+                           RESULT = new OpExp(exp1left, exp2right, exp1, OpExp.DIVIDE, exp2);
+                        :}
+                     | LBRACKET expression:exp RBRACKET
+                        {:
+                           RESULT = exp;
+                        :}
+                     ;
+
+other_exp            ::= ID:id
+                        {:
+                           RESULT = new VariableExp(idleft, idright, id, null);
+                        :}
+                     | ID:id LSQUAREBRACKET expression:exp RSQUAREBRACKET
+                        {:
+                           RESULT = new VariableExp(idleft, idright, id, exp);
+                        :}
+                     | ID:id LBRACKET expression_list:list RBRACKET
+                        {:
+                           RESULT = new CallExpression(idleft, idright, id, list);
+                        :}
+                     | ID:id LBRACKET RBRACKET
+                        {:
+                           RESULT = new CallExpression(idleft, idright, id, null);
+                        :}
+                     | NUMBER:num 
+                        {:
+                           RESULT = new IntExp(numleft, numright, num);
+                        :}
+                     ;
+
+expression_list      ::= expression_list:exp_list COMMA expression:exp
+                        {:
+                           ExpList expList = exp_list;
+                           while (expList.tail != null)
+                              expList = expList.tail;
+                           expList.tail = new ExpList(exp, null);
+                           RESULT = exp_list;
+                        :}
+                     | expression:exp
+                        {:
+                           RESULT = new ExpList(exp, null);  
                         :}
                      ;

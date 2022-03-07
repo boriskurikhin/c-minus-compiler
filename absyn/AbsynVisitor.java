@@ -34,4 +34,6 @@ public interface AbsynVisitor {
 
   public void visit (VarDeclarationList exp, int level);
 
+  public void visit(CallExpression exp, int level);
+
 }
