@@ -32,12 +32,16 @@ public class ShowTreeVisitor implements AbsynVisitor {
 
   public void visit( IfExp exp, int level ) {
     indent( level );
+    int save = level;
     System.out.println( "IfExp:" );
     level++;
     exp.test.accept( this, level );
     exp.thenpart.accept( this, level );
-    if (exp.elsepart != null )
-       exp.elsepart.accept( this, level );
+    if (exp.elsepart != null ) {
+      indent(save);
+      System.out.println("ElseExp: ");
+      exp.elsepart.accept( this, level );
+    }
   }
 
   public void visit( IntExp exp, int level ) {
