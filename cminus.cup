@@ -325,7 +325,7 @@ if_statement         ::= IF:i LBRACKET expression:exp RBRACKET statement:sment
                         :}
                      | IF:i LBRACKET error:err RBRACKET statement:sment1 ELSE statement:sment2
                         {:
-                           parser.report_error("Invalid if condition", null);
+                           parser.report_error("Invalid if-else condition", null);
                            RESULT = new IfExp(ileft, iright, null, sment1, sment2);
                         :}
                      ;

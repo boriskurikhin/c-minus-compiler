@@ -1,0 +1,50 @@
+A JFlex + Cup implementation for the C- programming language written by Boris Skurikhin & Brayden Klemens
+
+-- This implementation references/uses starter code provided by Fei Song --
+
+========
+BUILDING
+========
+
+    To build the parser, type "make" in the current directory, which will 
+    generate an executable program called "Main".
+
+========
+RUNNING!
+========
+
+    "java -cp /usr/share/java/cup.jar:. Main test_files/1.cm"
+
+Where "test_files/1.cm" is a working code sample we provided.
+The syntax tree will be displayed on the screen.
+
+  To rebuild the parser, type "make clean" and type "make" again.
+
+Also note that all the abstract syntax tree structures are defined under
+the directory "absyn" and the methods for showing a syntax tree is implemented
+by the visitor pattern in "ShowTreeVisitor.java".  Since some java files are 
+generated automatically, they may contain variables that are not used, which 
+are safe to ignore in the compilation process.
+
+==========
+5 EXAMPLES
+==========
+
+Can be found in the "test_files" folder and labeled
+1.cm, 2.cm, 3.cm, 4.cm and 5.cm respectively. The first file is a perfectly
+working file, while the rest have various errors!
+
+==========
+LIMITATIONS
+==========
+
+Not all possible errors are caught, we did our best to catch some important errors.
+For example, declaring a function with an invalid return type at the top level will throw an
+error that cannot be recovered.
+
+===========
+ASSUMPTIONS
+===========
+
+1. If error(s) are encountered, the syntax tree will not be printed.
+2. It is not possible to declare a void variable (including void arrays)

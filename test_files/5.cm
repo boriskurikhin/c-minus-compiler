@@ -1,11 +1,56 @@
 /*
     Created by: Boris Skurikhin, Brayden Klemens
-    File: 4.cm
+    File: 5.cm
     
-    Errors:
+    Errors in main:
 
-    1. Invalid function body (in the first function)
-    2. Invalid variable type (bob is not a valid type)
-    3. Invalid function call parameters
-
+    1. Invalid fvariable names (first 4 declarations)
+    2. Invalid if statement
+    3. Invalid if else statement
+    4. Invalid while loop
+    5. Invalid return
+    6. multiple bad parameters in function call
+    7. Single bad parameter in function call
+    8. Invalid data passed to function
+    9. Invalid array index
+    10. Invalid body data
 */
+
+
+int main(void){
+
+    int @@[5];
+    int f[!!!];
+    type f;
+    int !!!;
+
+    if (!!! < brain dead){
+        while (makes no sense){
+        
+        }
+    }
+
+    if (!!){
+
+    }else{
+
+    }
+
+    return @@!!;
+}
+
+void badparams(hdhd hdhdh){}
+
+int badparam(int x = 5){}
+
+int function(void) {
+    badCallBack(3, !!!!!!);
+}
+
+void inValidArrayIndex(){
+    y[!^^^^^] = 3;
+}
+
+int invalidCompound(){
+    ienbiuwebiwuyedybwyu
+}
