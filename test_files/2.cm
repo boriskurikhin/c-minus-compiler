@@ -1,0 +1,29 @@
+/*
+    Created by: Boris Skurikhin, Brayden Klemens
+    File: 2.cm
+    
+    Errors:
+
+    1. Invalid variable names (int !!!!!)
+    2. Invalid parameters inside add function
+    3. Multiple less-than compare operations inside if statement.
+
+*/
+
+int !!!;
+int y;
+
+void main(){
+
+    x = 10;
+    y = 10;
+    add(x,y,z);
+}
+
+int add(int x = 5, int y = 6){
+    if(x > 5){
+        if(lol <<<<< 1){
+
+        }
+    }
+}

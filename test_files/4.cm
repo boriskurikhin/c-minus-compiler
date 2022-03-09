@@ -1,0 +1,28 @@
+/*
+    Created by: Boris Skurikhin, Brayden Klemens
+    File: 4.cm
+    
+    Errors:
+
+    1. Invalid function body (in the first function)
+    2. Invalid variable type (bob is not a valid type)
+    3. Invalid function call parameters
+
+*/
+
+void what_does_an_eggplant_look_like() {
+    this is what an eggplant looks like --> 🍆
+}
+
+int bad_variable_name(void) {
+    int x;
+
+    while (1) {
+        bob memory_leak;
+    }
+}
+
+
+int bad_variable_name(void) {
+    what_does_an_eggplant_look_like(3, 🍆);
+}

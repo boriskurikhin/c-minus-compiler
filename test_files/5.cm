@@ -1,0 +1,11 @@
+/*
+    Created by: Boris Skurikhin, Brayden Klemens
+    File: 4.cm
+    
+    Errors:
+
+    1. Invalid function body (in the first function)
+    2. Invalid variable type (bob is not a valid type)
+    3. Invalid function call parameters
+
+*/
