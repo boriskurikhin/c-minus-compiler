@@ -1,5 +1,5 @@
 /*
-  Created by: Fei Song
+  Created by: Boris Skurikhin, Brayden Klemens
   File Name: Main.java
   To Build: 
   After the scanner, tiny.flex, and the parser, tiny.cup, have been created.

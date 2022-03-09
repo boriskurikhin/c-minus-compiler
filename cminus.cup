@@ -1,8 +1,7 @@
 /*
-  Created by: Boris S, Brayden K
+  Created by: Boris Skurikhin, Brayden Klemens
   File Name: cminus.cup
 */
-   
    
 /* ----------------------Preliminary Declarations Section--------------------*/
    
@@ -56,6 +55,7 @@ non terminal CompoundStatement compound_statement;
 non terminal ExpList statement_list, expression_list;
 non terminal Exp expression, statement, exp_statement, compare_exp, math_exp, other_exp, if_statement, loop_statement, return_statement;
 non terminal VariableExp var;
+non terminal ArrVariableExp arr_var;
 
 
 precedence right SETEQUALS;
@@ -73,7 +73,7 @@ program	            ::= declaration_list:dec_list
                         {: RESULT = dec_list; :}
                      | 
                         {:
-                           parser.report_error("Invalid entry/start for main executable", null);
+                           parser.report_error("Empty file", null);
                         :}
                      ;
 
@@ -89,20 +89,15 @@ declaration_list     ::= declaration_list:dec_list declaration:dec
                         {:
                            RESULT = new DeclarationList(dec, null);
                         :}
-                     | error
-                        {: 
-                           parser.report_error("Invalid top-level declaration", null);
-                           RESULT = new DeclarationList(null, null);
-                        :}
                      ;
-
-declaration          ::= variable_declaration:var_d
-                        {:
-                           RESULT = var_d;
-                        :}
-                     | function_declaration:func_d
+/* TODO: check this out later */
+declaration          ::= function_declaration:func_d
                         {:
                            RESULT = func_d;
+                        :}
+                     | variable_declaration:var_d
+                        {:
+                           RESULT = var_d;
                         :}
                      ;
 
@@ -125,6 +120,17 @@ variable_declaration ::= INT:type ID:id SEMICOLON
                               new IntExp(sizeleft, sizeright, size)
                            );
                         :}
+                     | INT:type error:id LSQUAREBRACKET NUMBER:size RSQUAREBRACKET SEMICOLON
+                        {:
+                           parser.report_error("Invalid variable name", null);
+                           RESULT = new ArrayDeclaration(
+                              idleft,
+                              idright,
+                              new VariableType(typeleft, typeright, VariableType.INT),
+                              null,
+                              new IntExp(sizeleft, sizeright, size)
+                           );
+                        :}
                      | INT:type ID:id LSQUAREBRACKET error:err RSQUAREBRACKET SEMICOLON
                         {:
                            parser.report_error("Invalid array size", null);
@@ -144,6 +150,16 @@ variable_declaration ::= INT:type ID:id SEMICOLON
                               typeright, 
                               id,
                               null
+                           );
+                        :}
+                     | INT:type error:id SEMICOLON
+                        {:
+                           parser.report_error("Invalid variable name", null);
+                           RESULT = new NoValDeclaration(
+                              idleft,
+                              idright, 
+                              null,
+                              new VariableType(typeleft, typeright, VariableType.INT)
                            );
                         :}
                      ;
@@ -170,18 +186,6 @@ function_declaration ::= INT:type ID:id LBRACKET parameter_list:params RBRACKET 
                                  statement
                               );
                            :}
-                        | error:type ID:id LBRACKET parameter_list:params RBRACKET compound_statement:statement
-                           {:
-                              parser.report_error("Invalid function type", null);
-                              RESULT = new FunctionDeclaration(
-                                 idleft,
-                                 idright,
-                                 null,
-                                 id,
-                                 params,
-                                 statement
-                              );
-                           :}
                         ;
 
 parameter_list       ::= parameter_list:list COMMA parameter:param
@@ -191,16 +195,6 @@ parameter_list       ::= parameter_list:list COMMA parameter:param
                               param_list = param_list.tail;
                            }
                            param_list.tail = new VarDeclarationList(param, null);
-                           RESULT = list;
-                        :}
-                     | parameter_list:list COMMA error:err
-                        {:
-                           parser.report_error("Invalid function parameter", null);
-                           VarDeclarationList param_list = list;
-                           while (param_list.tail != null) {
-                              param_list = param_list.tail;
-                           }
-                           param_list.tail = new VarDeclarationList(null, null);
                            RESULT = list;
                         :}
                      | parameter:param
@@ -214,11 +208,6 @@ parameter_list       ::= parameter_list:list COMMA parameter:param
                      | 
                         {:
                            RESULT = null;
-                        :}
-                     | error:err 
-                        {:
-                           parser.report_error("Invalid function parameter", null);
-                           RESULT =  new VarDeclarationList(null, null);
                         :}
                      ;
 
@@ -241,12 +230,22 @@ parameter            ::= INT:type ID:id LSQUAREBRACKET RSQUAREBRACKET
                               new VariableType(typeleft, typeright, VariableType.INT)
                            );
                         :} 
+                     | error:err 
+                        {:
+                           parser.report_error("Invalid function parameter", null);
+                           RESULT = null;
+                        :}
                      ;
 
 
 compound_statement   ::= LCURLYBRACKET block_declarations:declarations statement_list:statements RCURLYBRACKET
                         {:
                            RESULT = new CompoundStatement(declarationsleft, declarationsright, declarations, statements);
+                        :}
+                     | LCURLYBRACKET block_declarations:declarations error:err RCURLYBRACKET
+                        {:
+                           parser.report_error("Invalid compound statement body", null);
+                           RESULT = new CompoundStatement(declarationsleft, declarationsright, declarations, null);
                         :}
                      ;
 
@@ -319,11 +318,26 @@ if_statement         ::= IF:i LBRACKET expression:exp RBRACKET statement:sment
                         {:
                            RESULT = new IfExp(ileft, iright, exp, sment1, sment2);
                         :}
+                     | IF:i LBRACKET error:err RBRACKET statement:sment
+                        {:
+                           parser.report_error("Invalid if condition", null);
+                           RESULT = new IfExp(ileft, iright, null, sment, null);
+                        :}
+                     | IF:i LBRACKET error:err RBRACKET statement:sment1 ELSE statement:sment2
+                        {:
+                           parser.report_error("Invalid if condition", null);
+                           RESULT = new IfExp(ileft, iright, null, sment1, sment2);
+                        :}
                      ;
 
 loop_statement       ::= WHILE:loop LBRACKET expression:exp RBRACKET statement:sment 
                         {:
                            RESULT = new RepeatExp(loopleft, loopright, exp, sment);
+                        :}
+                     | WHILE:loop LBRACKET error:exp RBRACKET statement:sment
+                        {:
+                           parser.report_error("Invalid loop condition", null);
+                           RESULT = new RepeatExp(loopleft, loopright, null, sment);
                         :}
                      ;
 
@@ -335,12 +349,21 @@ return_statement     ::= RETURN:ret expression:exp SEMICOLON
                         {:
                            RESULT = new ReturnExp(retleft, retright, null);
                         :}
+                     | RETURN:ret error:err SEMICOLON
+                        {:
+                           parser.report_error("Invalid return expression", null);
+                           RESULT = new ReturnExp(retleft, retright, null);
+                        :}
                      ;
 
 /* X = 5; X[3] = 3; */
 /* X < 3 */
 /* 7 + 4 + X, (X) */
 expression           ::= var:v SETEQUALS expression:exp
+                        {:
+                           RESULT = new AssignExp(vleft, vright, v, exp);
+                        :}
+                     | arr_var:v SETEQUALS expression:exp
                         {:
                            RESULT = new AssignExp(vleft, vright, v, exp);
                         :}
@@ -358,15 +381,23 @@ expression           ::= var:v SETEQUALS expression:exp
                         :}
                      ;
 
+arr_var              ::= ID:id LSQUAREBRACKET expression:exp RSQUAREBRACKET
+                        {:
+                           RESULT = new ArrVariableExp(idleft, idright, id, exp);
+                        :}
+                     | ID:id LSQUAREBRACKET error:err RSQUAREBRACKET
+                        {:
+                           parser.report_error("Invalid array index expression", null);
+                           RESULT = new ArrVariableExp(idleft, idright, id, null);
+                        :}
+                     ;
+
+
 var                  ::= ID:id
                         {:
                            RESULT = new VariableExp(idleft, idright, id, null);
                         :}
-                     | ID:id LSQUAREBRACKET expression:exp RSQUAREBRACKET
-                        {:
-                           RESULT = new VariableExp(idleft, idright, id, exp);
-                        :}
-                     | ;
+                     ; /* deleted empty thing */
 
 compare_exp          ::= expression:exp1 LESSTHANEQ expression:exp2
                         {:
@@ -422,7 +453,7 @@ other_exp            ::= ID:id
                         :}
                      | ID:id LSQUAREBRACKET expression:exp RSQUAREBRACKET
                         {:
-                           RESULT = new VariableExp(idleft, idright, id, exp);
+                           RESULT = new ArrVariableExp(idleft, idright, id, exp);
                         :}
                      | ID:id LBRACKET expression_list:list RBRACKET
                         {:
@@ -436,7 +467,11 @@ other_exp            ::= ID:id
                         {:
                            RESULT = new IntExp(numleft, numright, num);
                         :}
-                     ;
+                     | ID:id LBRACKET error:err RBRACKET
+                        {:
+                           parser.report_error("Invalid function call parameters", null);
+                           RESULT = new CallExpression(idleft, idright, id, null);
+                        :};
 
 expression_list      ::= expression_list:exp_list COMMA expression:exp
                         {:

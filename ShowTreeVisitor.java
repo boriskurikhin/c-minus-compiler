@@ -173,6 +173,14 @@ public class ShowTreeVisitor implements AbsynVisitor {
       exp.expressions.accept(this, level);
   }
 
+  public void visit(ArrVariableExp exp, int level) {
+    indent(level);
+    System.out.println("ArrVariableExp: " + exp.name);
+    level++;
+    if (exp.expressions != null)
+      exp.expressions.accept(this, level);
+  }
+
   public void visit (CallExpression exp, int level) {
     indent(level);
     System.out.println("CallExpression: " + exp.name);

@@ -1,13 +1,4 @@
-int x;
+int test () {
 
-
-
-
-int x() {
-
-}
-
-
-float k() {
-
+    x[3] = m[3];
 }
