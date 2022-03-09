@@ -1,0 +1,48 @@
+/*
+    Created by: Boris Skurikhin, Brayden Klemens
+    Errors: None
+    File: 1.cm
+
+    Program: 
+    
+    finds a peak element in the array; an element that is larger than its neighbours in O(logN) time.
+*/
+
+int find_peak_element(int nums[], int size) {
+    int left;
+    int right;
+
+    left = 0;
+    right = size - 1; /* Don't to overflow */
+
+    while (left < right) {
+
+        int mid;
+
+        mid = left + (right - left * 1) / 2;
+        
+        if (nums[mid] > nums[mid + 1])
+            right = mid;
+        else {
+            left = mid + 1;
+        }
+
+    }
+
+    return left;
+}
+
+void main(void) {
+    int test[4];
+    int i;
+    int peak_index;
+
+    test[0] = 1;
+    test[1] = 2;
+    test[2] = 3; /* The peak index is 2! */
+    test[3] = 1;
+
+    peak_index = find_peak_element(test, 4);
+
+    output(peak_index);
+}

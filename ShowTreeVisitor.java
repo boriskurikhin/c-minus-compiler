@@ -154,7 +154,7 @@ public class ShowTreeVisitor implements AbsynVisitor {
 
   public void visit( RepeatExp exp, int level ) {
     indent( level );
-    System.out.println( "RepeatExp:" );
+    System.out.println( "WhileExp:" );
     level++;
     exp.test.accept( this, level ); 
     exp.statement.accept( this, level );

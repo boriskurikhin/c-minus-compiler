@@ -26,7 +26,7 @@ id = [_a-zA-Z][_a-zA-Z0-9]*
 number = [0-9]+
 lineTerm = \r|\n|\r\n
 whitespace = {lineTerm} | [ \t\f]
-comment = \/\*(.*?|{lineTerm})*\*\/
+comment = \/\*[^*/]*\*\/
  
 %%
    
