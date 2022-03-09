@@ -5,7 +5,6 @@
    
 /* ----------------------Preliminary Declarations Section--------------------*/
    
-/* Import the class java_cup.runtime.*  */
 import java_cup.runtime.*;
 import absyn.*; 
 
@@ -13,6 +12,7 @@ parser code {:
 
    public boolean error_detected = false;
 
+   /* Constructs an error messsage string, outputs to stderr */
    public void report_error(String message, Object info) {
    
       error_detected = true;
@@ -31,6 +31,7 @@ parser code {:
       System.err.println(m);
    }
    
+   /* Overwrites report fatal error method */
    public void report_fatal_error(String message, Object info) {
       report_error(message, info);
       System.exit(1);
@@ -56,7 +57,6 @@ non terminal ExpList statement_list, expression_list;
 non terminal Exp expression, statement, exp_statement, compare_exp, math_exp, other_exp, if_statement, loop_statement, return_statement;
 non terminal VariableExp var;
 non terminal ArrVariableExp arr_var;
-
 
 precedence right SETEQUALS;
 precedence left COMMA, ELSE, ERROR;
@@ -90,7 +90,7 @@ declaration_list     ::= declaration_list:dec_list declaration:dec
                            RESULT = new DeclarationList(dec, null);
                         :}
                      ;
-/* TODO: check this out later */
+
 declaration          ::= function_declaration:func_d
                         {:
                            RESULT = func_d;

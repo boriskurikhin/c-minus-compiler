@@ -1,3 +1,8 @@
+/*
+  Created by: Boris Skurikhin, Brayden Klemens
+  File Name: cminus.flex
+*/
+
 import java_cup.runtime.*;
       
 %%
@@ -21,6 +26,8 @@ import java_cup.runtime.*;
         return new Symbol (type, yyline, yycolumn, value);
     }
 %}
+
+/* Regex List */
 
 id = [_a-zA-Z][_a-zA-Z0-9]*
 number = [0-9]+
