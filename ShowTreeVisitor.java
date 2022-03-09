@@ -61,6 +61,8 @@ public class ShowTreeVisitor implements AbsynVisitor {
       System.out.println("VOID " + exp.name);
     } else if (exp.type.type == VariableType.INT) {
       System.out.println("INT " + exp.name);
+    } else if (exp.type.type == VariableType.ERROR) {
+      System.out.println("ERROR " + exp.name);
     }
   }
 
@@ -98,12 +100,17 @@ public class ShowTreeVisitor implements AbsynVisitor {
       case OpExp.GREATERTHANEQ:
         System.out.println( " >= " );
         break;
+      case OpExp.ERROR:
+        System.out.println( "ERROR" );
+        break;
       default:
         System.out.println( "Unrecognized operator at line " + exp.row + " and column " + exp.col);
     }
     level++;
-    exp.left.accept( this, level );
-    exp.right.accept( this, level );
+    if (exp.left != null && exp.right != null) {
+      exp.left.accept( this, level );
+      exp.right.accept( this, level );
+    }
   }
 
   public void visit( ReadExp exp, int level ) {

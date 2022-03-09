@@ -4,6 +4,7 @@ public class VariableType extends Absyn {
     public int type;
     public final static int VOID = 0;
     public final static int INT  = 1;
+    public final static int ERROR = 2;
 
 
     public VariableType(int row, int col, int type) {

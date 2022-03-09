@@ -20,10 +20,11 @@ void main(){
     add(x,y,z);
 }
 
-int add(int x = 5, int y = 6){
+int add(int x = 5){
     if(x > 5){
         if(lol <<<<< 1){
 
         }
     }
 }
+

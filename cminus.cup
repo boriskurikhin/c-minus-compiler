@@ -10,12 +10,9 @@ import absyn.*;
 
 parser code {:
 
-   public boolean error_detected = false;
-
    /* Constructs an error messsage string, outputs to stderr */
    public void report_error(String message, Object info) {
    
-      error_detected = true;
       StringBuffer m = new StringBuffer("Error");
    
       if (info instanceof java_cup.runtime.Symbol) {
@@ -127,7 +124,7 @@ variable_declaration ::= INT:type ID:id SEMICOLON
                               idleft,
                               idright,
                               new VariableType(typeleft, typeright, VariableType.INT),
-                              null,
+                              "ERROR",
                               new IntExp(sizeleft, sizeright, size)
                            );
                         :}
@@ -139,7 +136,7 @@ variable_declaration ::= INT:type ID:id SEMICOLON
                               typeright,
                               new VariableType(typeleft, typeright, VariableType.INT),
                               id,
-                              new IntExp(errleft, errright, null)
+                              new IntExp(errleft, errright, "ERROR")
                            );
                         :}
                      | error:type ID:id SEMICOLON
@@ -149,7 +146,7 @@ variable_declaration ::= INT:type ID:id SEMICOLON
                               typeleft,
                               typeright, 
                               id,
-                              null
+                              new VariableType(typeleft, typeright, VariableType.ERROR)
                            );
                         :}
                      | INT:type error:id SEMICOLON
@@ -158,7 +155,7 @@ variable_declaration ::= INT:type ID:id SEMICOLON
                            RESULT = new NoValDeclaration(
                               idleft,
                               idright, 
-                              null,
+                              "ERROR",
                               new VariableType(typeleft, typeright, VariableType.INT)
                            );
                         :}
@@ -230,10 +227,15 @@ parameter            ::= INT:type ID:id LSQUAREBRACKET RSQUAREBRACKET
                               new VariableType(typeleft, typeright, VariableType.INT)
                            );
                         :} 
-                     | error:err 
+                     | error:type 
                         {:
                            parser.report_error("Invalid function parameter", null);
-                           RESULT = null;
+                           RESULT = new NoValDeclaration(
+                              typeleft,
+                              typeright, 
+                              "ERROR",
+                              new VariableType(typeleft, typeright, VariableType.ERROR)
+                           );
                         :}
                      ;
 
@@ -245,7 +247,11 @@ compound_statement   ::= LCURLYBRACKET block_declarations:declarations statement
                      | LCURLYBRACKET block_declarations:declarations error:err RCURLYBRACKET
                         {:
                            parser.report_error("Invalid compound statement body", null);
-                           RESULT = new CompoundStatement(declarationsleft, declarationsright, declarations, null);
+                           RESULT = new CompoundStatement(
+                              declarationsleft,
+                              declarationsright,
+                              declarations,
+                              new ExpList(new OpExp(errleft, errright, OpExp.ERROR), null));
                         :}
                      ;
 
@@ -321,12 +327,12 @@ if_statement         ::= IF:i LBRACKET expression:exp RBRACKET statement:sment
                      | IF:i LBRACKET error:err RBRACKET statement:sment
                         {:
                            parser.report_error("Invalid if condition", null);
-                           RESULT = new IfExp(ileft, iright, null, sment, null);
+                           RESULT = new IfExp(ileft, iright, new OpExp(errleft, errright, OpExp.ERROR), sment, null);
                         :}
                      | IF:i LBRACKET error:err RBRACKET statement:sment1 ELSE statement:sment2
                         {:
                            parser.report_error("Invalid if-else condition", null);
-                           RESULT = new IfExp(ileft, iright, null, sment1, sment2);
+                           RESULT = new IfExp(ileft, iright, new OpExp(errleft, errright, OpExp.ERROR), sment1, sment2);
                         :}
                      ;
 
@@ -337,7 +343,7 @@ loop_statement       ::= WHILE:loop LBRACKET expression:exp RBRACKET statement:s
                      | WHILE:loop LBRACKET error:exp RBRACKET statement:sment
                         {:
                            parser.report_error("Invalid loop condition", null);
-                           RESULT = new RepeatExp(loopleft, loopright, null, sment);
+                           RESULT = new RepeatExp(loopleft, loopright, new OpExp(expleft, expright, OpExp.ERROR), sment);
                         :}
                      ;
 
@@ -352,7 +358,7 @@ return_statement     ::= RETURN:ret expression:exp SEMICOLON
                      | RETURN:ret error:err SEMICOLON
                         {:
                            parser.report_error("Invalid return expression", null);
-                           RESULT = new ReturnExp(retleft, retright, null);
+                           RESULT = new ReturnExp(retleft, retright, new OpExp(errleft, errright, OpExp.ERROR));
                         :}
                      ;
 
@@ -388,7 +394,7 @@ arr_var              ::= ID:id LSQUAREBRACKET expression:exp RSQUAREBRACKET
                      | ID:id LSQUAREBRACKET error:err RSQUAREBRACKET
                         {:
                            parser.report_error("Invalid array index expression", null);
-                           RESULT = new ArrVariableExp(idleft, idright, id, null);
+                           RESULT = new ArrVariableExp(idleft, idright, id, new OpExp(errleft, errright, OpExp.ERROR));
                         :}
                      ;
 
@@ -470,7 +476,8 @@ other_exp            ::= ID:id
                      | ID:id LBRACKET error:err RBRACKET
                         {:
                            parser.report_error("Invalid function call parameters", null);
-                           RESULT = new CallExpression(idleft, idright, id, null);
+                           RESULT = new CallExpression(idleft, idright, id, new ExpList(
+                              new OpExp(errleft, errright, OpExp.ERROR), null));
                         :};
 
 expression_list      ::= expression_list:exp_list COMMA expression:exp

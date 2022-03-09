@@ -11,6 +11,7 @@ public class OpExp extends Exp {
   public final static int CHECKNOTEQUALS = 7;
   public final static int LESSTHANEQ = 8;
   public final static int GREATERTHANEQ = 9;
+  public final static int ERROR = 10;
 
 
   public Exp left;
@@ -23,6 +24,12 @@ public class OpExp extends Exp {
     this.left = left;
     this.op = op;
     this.right = right;
+  }
+
+  public OpExp (int row, int col, int op) {
+    this.row = row;
+    this.col = col;
+    this.op = op;
   }
 
   public void accept( AbsynVisitor visitor, int level ) {
