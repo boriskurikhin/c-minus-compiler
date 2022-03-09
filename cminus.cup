@@ -1,7 +1,6 @@
 /*
-  Created by: Fei Song
-  File Name: tiny.cup
-  To Build: java java_cup.Main < tiny.cup
+  Created by: Boris S, Brayden K
+  File Name: cminus.cup
 */
    
    
@@ -10,6 +9,36 @@
 /* Import the class java_cup.runtime.*  */
 import java_cup.runtime.*;
 import absyn.*; 
+
+parser code {:
+
+   public boolean error_detected = false;
+
+   public void report_error(String message, Object info) {
+   
+      error_detected = true;
+      StringBuffer m = new StringBuffer("Error");
+   
+      if (info instanceof java_cup.runtime.Symbol) {
+         java_cup.runtime.Symbol s = ((java_cup.runtime.Symbol) info);
+         if (s.left >= 0) {                
+            m.append(" in line "+(s.left+1));   
+            if (s.right >= 0) 
+               m.append(", column "+(s.right+1));
+         }
+      }
+   
+      m.append(" : "+message);
+      System.err.println(m);
+   }
+   
+   public void report_fatal_error(String message, Object info) {
+      report_error(message, info);
+      System.exit(1);
+   }
+
+:};
+
    
 /* ------------Declaration of Terminals and Non Terminals Section----------- */
    
@@ -42,6 +71,10 @@ start with program;
 
 program	            ::= declaration_list:dec_list
                         {: RESULT = dec_list; :}
+                     | 
+                        {:
+                           parser.report_error("Invalid entry/start for main executable", null);
+                        :}
                      ;
 
 declaration_list     ::= declaration_list:dec_list declaration:dec
@@ -55,6 +88,11 @@ declaration_list     ::= declaration_list:dec_list declaration:dec
                      | declaration:dec
                         {:
                            RESULT = new DeclarationList(dec, null);
+                        :}
+                     | error
+                        {: 
+                           parser.report_error("Invalid top-level declaration", null);
+                           RESULT = new DeclarationList(null, null);
                         :}
                      ;
 
@@ -87,6 +125,27 @@ variable_declaration ::= INT:type ID:id SEMICOLON
                               new IntExp(sizeleft, sizeright, size)
                            );
                         :}
+                     | INT:type ID:id LSQUAREBRACKET error:err RSQUAREBRACKET SEMICOLON
+                        {:
+                           parser.report_error("Invalid array size", null);
+                           RESULT = new ArrayDeclaration(
+                              typeleft,
+                              typeright,
+                              new VariableType(typeleft, typeright, VariableType.INT),
+                              id,
+                              new IntExp(errleft, errright, null)
+                           );
+                        :}
+                     | error:type ID:id SEMICOLON
+                        {:
+                           parser.report_error("Invalid variable type", null);
+                           RESULT = new NoValDeclaration(
+                              typeleft,
+                              typeright, 
+                              id,
+                              null
+                           );
+                        :}
                      ;
 
 function_declaration ::= INT:type ID:id LBRACKET parameter_list:params RBRACKET compound_statement:statement
@@ -111,6 +170,18 @@ function_declaration ::= INT:type ID:id LBRACKET parameter_list:params RBRACKET 
                                  statement
                               );
                            :}
+                        | error:type ID:id LBRACKET parameter_list:params RBRACKET compound_statement:statement
+                           {:
+                              parser.report_error("Invalid function type", null);
+                              RESULT = new FunctionDeclaration(
+                                 idleft,
+                                 idright,
+                                 null,
+                                 id,
+                                 params,
+                                 statement
+                              );
+                           :}
                         ;
 
 parameter_list       ::= parameter_list:list COMMA parameter:param
@@ -120,6 +191,16 @@ parameter_list       ::= parameter_list:list COMMA parameter:param
                               param_list = param_list.tail;
                            }
                            param_list.tail = new VarDeclarationList(param, null);
+                           RESULT = list;
+                        :}
+                     | parameter_list:list COMMA error:err
+                        {:
+                           parser.report_error("Invalid function parameter", null);
+                           VarDeclarationList param_list = list;
+                           while (param_list.tail != null) {
+                              param_list = param_list.tail;
+                           }
+                           param_list.tail = new VarDeclarationList(null, null);
                            RESULT = list;
                         :}
                      | parameter:param
@@ -133,7 +214,13 @@ parameter_list       ::= parameter_list:list COMMA parameter:param
                      | 
                         {:
                            RESULT = null;
-                        :};
+                        :}
+                     | error:err 
+                        {:
+                           parser.report_error("Invalid function parameter", null);
+                           RESULT =  new VarDeclarationList(null, null);
+                        :}
+                     ;
 
 parameter            ::= INT:type ID:id LSQUAREBRACKET RSQUAREBRACKET
                         {:
@@ -153,8 +240,9 @@ parameter            ::= INT:type ID:id LSQUAREBRACKET RSQUAREBRACKET
                               id,
                               new VariableType(typeleft, typeright, VariableType.INT)
                            );
-                        :}
+                        :} 
                      ;
+
 
 compound_statement   ::= LCURLYBRACKET block_declarations:declarations statement_list:statements RCURLYBRACKET
                         {:

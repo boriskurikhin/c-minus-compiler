@@ -1,7 +1,13 @@
-void main(void)    {
-   if (a) {
-        if (b)
-            if(c) input(x);
-            else output(y);
-   } else output(n);
+int x;
+
+
+
+
+int x() {
+
+}
+
+
+float k() {
+
 }
