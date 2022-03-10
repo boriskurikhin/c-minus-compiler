@@ -13,10 +13,11 @@ BUILDING
 RUNNING!
 ========
 
-    "java -cp /usr/share/java/cup.jar:. Main test_files/1.cm"
+    "java -cp /usr/share/java/cup.jar:. Main test_files/1.cm -a"
 
 Where "test_files/1.cm" is a working code sample we provided.
-The syntax tree will be displayed on the screen.
+The syntax tree will be dumped into an ".abs" file with the name (in the same directory as the source file).
+Any error messages will be sent to stderr. 
 
   To rebuild the parser, type "make clean" and type "make" again.
 
@@ -38,13 +39,21 @@ working file, while the rest have various errors!
 LIMITATIONS
 ==========
 
-Not all possible errors are caught, we did our best to catch some important errors.
-For example, declaring a function with an invalid return type at the top level will throw an
-error that cannot be recovered.
+Our compiler does not have error recovery for top level declarations such as an invalid function declaration, 
+or statement declarations. For example if we were to define a function with an invalid type such as ‘String function(param, param)’
+our compiler does not have error recovery for this scenario. Thus, the compiler will produce a syntax error, and will fail to 
+continue the parsing for all top level declarations.
 
 ===========
 ASSUMPTIONS
 ===========
 
-1. If error(s) are encountered, the syntax tree will not be printed.
-2. It is not possible to declare a void variable (including void arrays)
+1. For the sake of the test files, we assume that all of the test files (1-5.cm) should end with the .cm extension.
+
+2. We assume that only 1 .cm source code file will be passed into the compilation, and its name/path does not start with the symbol “-”
+
+3. As per the project outline, our program requires -a flag to run the parser and output the syntax tree to a file. If the “-a” flag is not present, the execution of the program will halt right away. 
+
+4. Assume that the errors should only be written to stderr, error messages will not appear in the syntax tree file.
+
+5. Any error recovery in the syntax tree is displayed with an ‘ERROR’ identifier.

@@ -27,13 +27,13 @@ class Main{
     /* as per the spec, if the -a flag is not included we exit */
     if (!display_ast) return ;
 
-    file = new File(argv[filename_index].replace(".cm", ".ast"));
+    file = new File(argv[filename_index].replace(".cm", ".abs"));
 
     try {
       writer = new BufferedWriter(new FileWriter(file));
-
       parser p = new parser(new Lexer(new FileReader(argv[0])));
-      Absyn result = (Absyn)(p.parse().value);      
+      Absyn result = (Absyn)(p.parse().value);
+
       if (SHOW_TREE && result != null) {
         StringBuilder out = new StringBuilder();
         ShowTreeVisitor visitor = new ShowTreeVisitor(out);
