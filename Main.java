@@ -12,29 +12,39 @@ class Main{
   static public void main(String argv[])  {
     /* Start the parser */
     BufferedWriter writer = null;
+
     boolean display_ast = false;
+    boolean display_sym = false;
+
     int filename_index = 0, i = 0;
     File file;
 
     for (String arg : argv) {
       if (arg.charAt(0) != '-')
         filename_index = i;
-      if (arg.equals("-a"))
+      else if (arg.equals("-a"))
         display_ast = true;
+      else if (arg.equals("-s"))
+        display_sym = true;
       i++;
     }
 
-    /* as per the spec, if the -a flag is not included we exit */
-    if (!display_ast) return ;
-
-    file = new File(argv[filename_index].replace(".cm", ".abs"));
+    if (display_sym) file = new File(argv[filename_index].replace(".cm", ".sym"));
+    else if (display_ast) file = new File(argv[filename_index].replace(".cm", ".abs"));
+    else return; /* no flags specified, exiting */
 
     try {
       writer = new BufferedWriter(new FileWriter(file));
       parser p = new parser(new Lexer(new FileReader(argv[0])));
       Absyn result = (Absyn)(p.parse().value);
 
-      if (SHOW_TREE && result != null) {
+      if (display_sym && result != null) {
+        StringBuilder out = new StringBuilder();
+        SemanticAnalyzer analyzer = new SemanticAnalyzer(out);
+        result.accept(analyzer, 0);
+        writer.write(analyzer.out.toString());
+        writer.close();
+      } else if (display_ast && result != null) {
         StringBuilder out = new StringBuilder();
         ShowTreeVisitor visitor = new ShowTreeVisitor(out);
         result.accept(visitor, 0);
