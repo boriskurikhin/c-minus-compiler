@@ -42,6 +42,8 @@ class Main{
         StringBuilder out = new StringBuilder();
         SemanticAnalyzer analyzer = new SemanticAnalyzer(out);
         result.accept(analyzer, 0);
+        analyzer.print_scope(0);
+        analyzer.out.append("Leaving the global scope\n");
         writer.write(analyzer.out.toString());
         writer.close();
       } else if (display_ast && result != null) {

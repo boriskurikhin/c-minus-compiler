@@ -16,4 +16,12 @@ public class VariableType extends Absyn {
     public void accept(AbsynVisitor visitor, int level) {
         visitor.visit(this, level);
     }
+
+    public String getType() {
+        switch (type) {
+            case 0: return "VOID";
+            case 1: return "INT";
+            default: return "ERROR";
+        }
+    }
 }
