@@ -12,15 +12,11 @@ public interface AbsynVisitor {
 
   public void visit( OpExp exp, int level );
 
-  public void visit( ReadExp exp, int level );
-
   public void visit( RepeatExp exp, int level );
 
   public void visit( VariableExp exp, int level );
 
   public void visit( ArrVariableExp exp, int level );
-
-  public void visit( WriteExp exp, int level );
 
   public void visit (ArrayDeclaration exp, int level);
 

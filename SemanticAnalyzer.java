@@ -9,16 +9,24 @@ public class SemanticAnalyzer implements AbsynVisitor {
 
     int global_scope; /* global scope for the analyzer */
     Map<String, ArrayList<ANode>> symbol_table = new HashMap<>();
+
     FunctionDeclaration function_tracker;
+    Set<Integer> return_tracker;
     
 
     public SemanticAnalyzer (StringBuilder out) {
         this.out = out;
         global_scope = 0;
+
         function_tracker = null;
+        return_tracker = new HashSet<Integer>();
 
         /*
             TODO: add input() and output() to the symbol_table. Not sure what the name is .. probably function something
+            TODO: handle dead code (stuff thats after a return statement for that scope)
+            TODO: checking array index out of bounds (not that important)
+            TODO: accessing elements in array that don't have value stored (might assume everything is 0 or random junk)
+            TODO: add function name when entering function
         */
 
         out.append("The Semantic analyzer tree is:\n");
@@ -71,6 +79,28 @@ public class SemanticAnalyzer implements AbsynVisitor {
         });
     }
 
+    private boolean check_non_array_exists(String name) {
+        return symbol_table
+            .getOrDefault(name, new ArrayList<ANode>())
+            .stream()
+            .anyMatch(ref -> (ref.def instanceof NoValDeclaration));
+    }
+
+    /* TODO: we could potentially check array index out of bounds here */
+    private boolean check_array_exists(String name) {
+        return symbol_table
+            .getOrDefault(name, new ArrayList<ANode>())
+            .stream()
+            .anyMatch(ref -> (ref.def instanceof ArrayDeclaration));
+    }
+
+    private boolean check_function_exists(String name) {
+        return symbol_table
+            .getOrDefault(name, new ArrayList<ANode>())
+            .stream()
+            .anyMatch(ref -> (ref.def instanceof FunctionDeclaration));
+    }
+
     /* END OF HELPER FUNCTIONS */
 
     /* all variables/functions declared at the top level */
@@ -97,6 +127,7 @@ public class SemanticAnalyzer implements AbsynVisitor {
                 (exp.row + 1) + ", column: " + exp.col);
             return;
         }
+
         insert_node(new ANode(exp.name, exp, global_scope));
     }
 
@@ -156,14 +187,16 @@ public class SemanticAnalyzer implements AbsynVisitor {
         if (check != null && check.scope == 0) {
             System.err.println("Error: re-defined function " + exp.name + " at the top scope, on line: " + (exp.row + 1) + ", column: " + exp.col);
         } else {
-
             function_tracker = exp;
+            return_tracker = new HashSet<Integer>();
             insert_node(new ANode(exp.name, exp, global_scope - 1));
         }
-                
-        if (exp.body != null) {
+            
+        if (exp.body != null)
             exp.body.accept(this, level + 1);
-        }
+
+        if (exp.type.getType().equals("INT") && !return_tracker.contains(level + 1))
+            System.err.println("Error: INT function may not return a value, on line: " + (exp.row + 1) + ", column: " + exp.col);
 
         print_scope(level + 1);
         indent(level + 1);
@@ -195,26 +228,92 @@ public class SemanticAnalyzer implements AbsynVisitor {
             System.err.println("Error: VOID function attempted to return expression, at line " + (exp.row + 1) + ", column: " + (exp.col + 1));
         else if (exp.expression == null && function_tracker.type.getType().equals("INT"))
             System.err.println("Error: INT function attempted to return empty expression, at line " + (exp.row + 1) + ", column: " + (exp.col + 1));
-        else if (exp.expression != null) exp.expression.accept(this, level);
+        else if (exp.expression != null) {
+            return_tracker.add(level);
+            exp.expression.accept(this, level);
+        }
     }
 
-    public void visit( AssignExp exp, int level ){}
+    public void visit( AssignExp exp, int level ) {
+        exp.lhs.accept(this, level);
+        exp.rhs.accept(this, level);
+    }
+
+    public void visit( VariableExp exp, int level ) {
+        if (!check_non_array_exists(exp.name))
+            System.err.println("Error: variable undeclared, at line " + (exp.row + 1) + ", column: " + (exp.col + 1));
+    }
+
+    public void visit( ArrVariableExp exp, int level ){
+        exp.expressions.accept(this, level);
+        if(!check_array_exists(exp.name))
+            System.err.println("Error: array undeclared, at line " + (exp.row + 1) + ", column: " + (exp.col + 1));
+    }
+
+    public void visit( OpExp exp, int level) {
+        exp.left.accept(this, level);
+        exp.right.accept(this, level);
+    }
   
-    public void visit( IfExp exp, int level ){}
+    public void visit( IfExp exp, int level ){
+        exp.test.accept(this, level);
+
+        global_scope++;
+        
+        indent(level + 1);
+        out.append("Entering a new if block:\n");
+
+        if (exp.thenpart != null) 
+            exp.thenpart.accept(this, level + 1);
+
+        print_scope(level + 1);
+        delete_nodes_at_scope(global_scope);
+        
+        indent(level + 1);
+        out.append("Leaving the if block\n");
+
+        if (exp.elsepart != null) {
+            
+            indent(level + 1);
+            out.append("Entering a new else block:\n");
+
+            exp.elsepart.accept(this, level + 1);
+            print_scope(level + 1);
+
+            delete_nodes_at_scope(global_scope);
+
+            indent(level + 1);
+            out.append("Leaving the else block\n");
+        }
+
+        global_scope--;
+    }
+      
+    public void visit( RepeatExp exp, int level ) {
+        exp.test.accept(this, level);
+
+        global_scope++;
+
+        indent(level + 1);
+        out.append("Entering a new while block:\n");
+
+        if (exp.statement != null)
+            exp.statement.accept(this, level + 1);
+
+        print_scope(level + 1);
+        delete_nodes_at_scope(global_scope);
+
+        indent(level + 1);
+        out.append("Leaving the while block\n");
+
+        global_scope--;
+    }
     
-    public void visit( OpExp exp, int level ){}
-  
-    public void visit( ReadExp exp, int level ){}
-  
-    public void visit( RepeatExp exp, int level ){}
-  
-    public void visit( VariableExp exp, int level ){}
-  
-    public void visit( ArrVariableExp exp, int level ){}
-  
-    public void visit( WriteExp exp, int level ){}
-  
-    public void visit(CallExpression exp, int level){}
-  
-    
+    public void visit(CallExpression exp, int level) {
+        if (!check_function_exists(exp.name)) {
+            System.err.println("Error: function undeclared, at line " + (exp.row + 1) + ", column: " + (exp.col + 1));
+            return;
+        }
+    }
+   
 }

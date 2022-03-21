@@ -118,12 +118,6 @@ public class ShowTreeVisitor implements AbsynVisitor {
     }
   }
 
-  public void visit( ReadExp exp, int level ) {
-    indent( level );
-    out.append( "ReadExp:\n" );
-    exp.input.accept( this, ++level );
-  }
-
   public void visit(DeclarationList exp, int level) {
     while( exp != null ) {
       exp.head.accept( this, level );
@@ -216,11 +210,4 @@ public class ShowTreeVisitor implements AbsynVisitor {
     if (exp.expression != null)
       exp.expression.accept(this, level);
   }
-
-  public void visit( WriteExp exp, int level ) {
-    indent( level );
-    out.append( "WriteExp:\n" );
-    exp.output.accept( this, ++level );
-  }
-
 }
