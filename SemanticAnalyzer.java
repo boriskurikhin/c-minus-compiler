@@ -1,5 +1,6 @@
 import absyn.*;
 import java.util.*;
+import java.util.regex.*;
 
 public class SemanticAnalyzer implements AbsynVisitor {
 
@@ -94,11 +95,13 @@ public class SemanticAnalyzer implements AbsynVisitor {
             .anyMatch(ref -> (ref.def instanceof ArrayDeclaration));
     }
 
-    private boolean check_function_exists(String name) {
+    private ANode find_function (String name) {
         return symbol_table
             .getOrDefault(name, new ArrayList<ANode>())
             .stream()
-            .anyMatch(ref -> (ref.def instanceof FunctionDeclaration));
+            .filter(ref -> (ref.def instanceof FunctionDeclaration))
+            .findFirst()
+            .orElse(null);
     }
 
     /* END OF HELPER FUNCTIONS */
@@ -134,7 +137,9 @@ public class SemanticAnalyzer implements AbsynVisitor {
     /* int x[10] */
     public void visit (ArrayDeclaration exp, int level){
         exp.type.accept(this, level);
-        exp.size.accept(this, level);
+
+        if (exp.size != null)
+            exp.size.accept(this, level);
 
         ANode check = find_node(exp.name);
 
@@ -151,23 +156,21 @@ public class SemanticAnalyzer implements AbsynVisitor {
 
     /* function parameters */
     public void visit (VarDeclarationList exp, int level) {
-        int list_size = 0;
         VarDeclarationList head = exp;
+        List<String> print_value = new ArrayList<String>();
 
         while (exp != null) {
-            if (exp.head != null)
+            if (exp.head != null) {
                 exp.head.accept(this, level);
-            list_size++;
+                if (exp.head instanceof NoValDeclaration)
+                    print_value.add("INT");
+                else if (exp.head instanceof ArrayDeclaration)
+                    print_value.add("INT[]");
+            }
             exp = exp.tail;
         }
 
-        /* Listing function parameter types */
-        if (list_size > 0) {
-            head.print_value = "(" + String.join(
-                ", ",
-                Collections.nCopies(list_size, "INT")
-            ) + ")";
-        }
+        head.print_value = print_value;
     }
 
     /* int func() {} */
@@ -310,10 +313,43 @@ public class SemanticAnalyzer implements AbsynVisitor {
     }
     
     public void visit(CallExpression exp, int level) {
-        if (!check_function_exists(exp.name)) {
+
+        ANode function_called = find_function(exp.name);
+
+        if (function_called == null) {
             System.err.println("Error: function undeclared, at line " + (exp.row + 1) + ", column: " + (exp.col + 1));
             return;
         }
+
+        ExpList args = exp.args;
+        FunctionDeclaration function_dec = (FunctionDeclaration) function_called.def;
+
+        /* (INT, INT, INT) or (INT) or () */
+        List<String> function_sig = function_dec.parameters == null ? new ArrayList<String>() : function_dec.parameters.print_value;
+        int args_expected = function_sig.size();
+        int arg_index = 0;
+
+        /* (INT[], INT, INT, INT) */
+        /* call(k[], 3, k, m) */
+
+        while (args != null) {
+            if (args.head != null) {
+                /* checks to make sure the args are good */
+                /* must be of the same type */
+                args.head.accept(this, level);
+                if (function_sig.get(arg_index).equals("INT")) {
+                    System.err.println("Error: function argument INT expected, at line " + (exp.row + 1) + ", column: " + (args.head.col + 1));
+                } else if (function_sig.get(arg_index).equals("INT[]") && (args.head instanceof VariableExp)) {
+                    System.err.println("Error: function argument INT[] expected, at line " + (exp.row + 1) + ", column: " + (args.head.col + 1));
+                }
+                arg_index++;
+            }
+            args = args.tail;
+        }
+
+        if (args_expected != arg_index)
+            System.err.println("Error: function argument count mismatch, at line " + (exp.row + 1) + ", column: " + (exp.col + 1));
+
     }
    
 }

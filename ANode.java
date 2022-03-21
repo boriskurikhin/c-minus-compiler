@@ -18,11 +18,11 @@ public class ANode {
             return e.type.getType();
         } else if (def instanceof ArrayDeclaration) {
             ArrayDeclaration e = (ArrayDeclaration) def;
-            return e.type.getType() + "[" + e.size.value + "]";
+            return e.type.getType() + "[" + (e.size == null ? "" : e.size.value) + "]";
         } else if (def instanceof FunctionDeclaration) {
             FunctionDeclaration e = (FunctionDeclaration) def;
             if (e.parameters == null) return "() -> " + e.type.getType();
-            return e.parameters.print_value + " -> " + e.type.getType();
+            return String.join(", ", e.parameters.print_value) + " -> " + e.type.getType();
         }
         return "TODO!";
     }
