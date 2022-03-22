@@ -9,26 +9,59 @@ public class SemanticAnalyzer implements AbsynVisitor {
     final static int SPACES = 4;
 
     int global_scope; /* global scope for the analyzer */
-    Map<String, ArrayList<ANode>> symbol_table = new HashMap<>();
+    Map<String, ArrayList<ANode>> symbol_table;
 
     FunctionDeclaration function_tracker;
     Set<Integer> return_tracker;
-    
+    boolean is_value_required;
 
     public SemanticAnalyzer (StringBuilder out) {
         this.out = out;
         global_scope = 0;
 
         function_tracker = null;
+        symbol_table = new HashMap<>();
         return_tracker = new HashSet<Integer>();
+        is_value_required = false;
 
         /*
-            TODO: add input() and output() to the symbol_table. Not sure what the name is .. probably function something
             TODO: handle dead code (stuff thats after a return statement for that scope)
             TODO: checking array index out of bounds (not that important)
             TODO: accessing elements in array that don't have value stored (might assume everything is 0 or random junk)
-            TODO: add function name when entering function
         */
+
+        //int input();
+        // inserting the input() pre-defined function
+        insert_node(new ANode("input", new FunctionDeclaration(
+            0, 0, new VariableType(0, 0, VariableType.INT), "input", null, null
+        ), 0));
+
+        VarDeclarationList output_params = new VarDeclarationList(
+            new NoValDeclaration(
+                0,
+                0,
+                "output_value",
+                new VariableType(0, 0, VariableType.INT)
+            ),
+            null
+        );
+
+        output_params.print_value = new ArrayList<String>(Arrays.asList("INT"));
+
+        //void output(int output_value);
+        // inserting the output() pre-defined function
+        insert_node(new ANode(
+            "output", 
+            new FunctionDeclaration(
+                0,
+                0,
+                new VariableType(0, 0, VariableType.VOID),
+                "output",
+                output_params,
+                null
+            ),
+            0
+        ));
 
         out.append("The Semantic analyzer tree is:\n");
         out.append("Entering the global scope:\n");
@@ -81,18 +114,18 @@ public class SemanticAnalyzer implements AbsynVisitor {
     }
 
     private boolean check_non_array_exists(String name) {
-        return symbol_table
-            .getOrDefault(name, new ArrayList<ANode>())
-            .stream()
-            .anyMatch(ref -> (ref.def instanceof NoValDeclaration));
+        ANode last = find_node(name);
+        if (last == null)
+            return false;
+        return (last.def instanceof NoValDeclaration);
     }
 
     /* TODO: we could potentially check array index out of bounds here */
     private boolean check_array_exists(String name) {
-        return symbol_table
-            .getOrDefault(name, new ArrayList<ANode>())
-            .stream()
-            .anyMatch(ref -> (ref.def instanceof ArrayDeclaration));
+        ANode last = find_node(name);
+        if (last == null)
+            return false;
+        return (last.def instanceof ArrayDeclaration);
     }
 
     private ANode find_function (String name) {
@@ -233,13 +266,19 @@ public class SemanticAnalyzer implements AbsynVisitor {
             System.err.println("Error: INT function attempted to return empty expression, at line " + (exp.row + 1) + ", column: " + (exp.col + 1));
         else if (exp.expression != null) {
             return_tracker.add(level);
+            is_value_required = true;
             exp.expression.accept(this, level);
+            is_value_required = false;
         }
     }
 
     public void visit( AssignExp exp, int level ) {
+        //k  = 3 * x + m * f() * 3
         exp.lhs.accept(this, level);
+
+        is_value_required = true;
         exp.rhs.accept(this, level);
+        is_value_required = false;
     }
 
     public void visit( VariableExp exp, int level ) {
@@ -254,12 +293,16 @@ public class SemanticAnalyzer implements AbsynVisitor {
     }
 
     public void visit( OpExp exp, int level) {
+        is_value_required = true;
         exp.left.accept(this, level);
         exp.right.accept(this, level);
+        is_value_required = false;
     }
   
     public void visit( IfExp exp, int level ){
+        is_value_required = true;
         exp.test.accept(this, level);
+        is_value_required = false;
 
         global_scope++;
         
@@ -293,7 +336,9 @@ public class SemanticAnalyzer implements AbsynVisitor {
     }
       
     public void visit( RepeatExp exp, int level ) {
+        is_value_required = true;
         exp.test.accept(this, level);
+        is_value_required = false;
 
         global_scope++;
 
@@ -321,35 +366,61 @@ public class SemanticAnalyzer implements AbsynVisitor {
             return;
         }
 
-        ExpList args = exp.args;
+        ExpList args_passed = exp.args;
         FunctionDeclaration function_dec = (FunctionDeclaration) function_called.def;
+
+        if (is_value_required && !function_dec.type.getType().equals("INT")) {
+            System.err.println("Error: calling VOID function as part of integer expression, at line: " + (exp.row) + ", column: " +
+                (exp.col + 1));
+            return;
+        }
 
         /* (INT, INT, INT) or (INT) or () */
         List<String> function_sig = function_dec.parameters == null ? new ArrayList<String>() : function_dec.parameters.print_value;
-        int args_expected = function_sig.size();
-        int arg_index = 0;
+        int sig_index = 0;
 
-        /* (INT[], INT, INT, INT) */
-        /* call(k[], 3, k, m) */
-
-        while (args != null) {
-            if (args.head != null) {
-                /* checks to make sure the args are good */
-                /* must be of the same type */
-                args.head.accept(this, level);
-                if (function_sig.get(arg_index).equals("INT")) {
-                    System.err.println("Error: function argument INT expected, at line " + (exp.row + 1) + ", column: " + (args.head.col + 1));
-                } else if (function_sig.get(arg_index).equals("INT[]") && (args.head instanceof VariableExp)) {
-                    System.err.println("Error: function argument INT[] expected, at line " + (exp.row + 1) + ", column: " + (args.head.col + 1));
+        while (args_passed != null) {
+            if (args_passed.head != null) {
+                // Argument expects an array of ints
+                if (sig_index >= function_sig.size()) {
+                    System.err.println("Error: function argument mismatch - too many args passed, at line: " + 
+                        (exp.row + 1) + ", column: " + (args_passed.head.col));
+                    return;
                 }
-                arg_index++;
+
+                if (function_sig.get(sig_index).equals("INT[]")) {
+                    // A variable is passed
+                    if (args_passed.head instanceof VariableExp) {
+                        VariableExp v = (VariableExp) args_passed.head;
+                        // Check if passed variable is of type array
+                        if (!check_array_exists(v.name))
+                            System.err.println("Error: function argument mismatch - array expected, at line: " + 
+                            (exp.row + 1) + ", column: " + (args_passed.head.col));
+                    } else {
+                        args_passed.head.accept(this, level);
+                        System.err.println("Error: function argument mismatch - array expected, at line: " + (exp.row + 1) 
+                        + ", column: " + (args_passed.head.col));
+                    }
+                } else {
+                    //we're expecting an int, but are given a reference to array
+                    if (args_passed.head instanceof VariableExp) {
+                        VariableExp v = (VariableExp) args_passed.head;
+
+                        if (check_array_exists(v.name))
+                            System.err.println("Error: function argument mismatch - int expected, at line: " + 
+                            (exp.row + 1) + ", column: " + (args_passed.head.col));
+                    } else {
+                        args_passed.head.accept(this, level);
+                    }
+                }
+                sig_index++;
             }
-            args = args.tail;
+            args_passed = args_passed.tail;
         }
 
-        if (args_expected != arg_index)
-            System.err.println("Error: function argument count mismatch, at line " + (exp.row + 1) + ", column: " + (exp.col + 1));
-
+        if (sig_index != function_sig.size()) {
+            System.err.println("Error: function argument mismatch - insufficient number of args passeds, at line: " + 
+                            (exp.row + 1) + ", column: " + (exp.col));
+        }
     }
-   
 }

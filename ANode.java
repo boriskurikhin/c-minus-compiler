@@ -22,7 +22,7 @@ public class ANode {
         } else if (def instanceof FunctionDeclaration) {
             FunctionDeclaration e = (FunctionDeclaration) def;
             if (e.parameters == null) return "() -> " + e.type.getType();
-            return String.join(", ", e.parameters.print_value) + " -> " + e.type.getType();
+            return "(" + String.join(", ", e.parameters.print_value) + ") -> " + e.type.getType();
         }
         return "TODO!";
     }
