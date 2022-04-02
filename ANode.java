@@ -1,5 +1,10 @@
 import absyn.*;
 
+/*
+  Created by: Boris Skurikhin, Brayden Klemens
+  File Name: ANode.java
+*/
+
 public class ANode {
 
     int scope;

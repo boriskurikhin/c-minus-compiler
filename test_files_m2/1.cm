@@ -1,0 +1,46 @@
+/*
+    Created by: Boris Skurikhin, Brayden Klemens
+    Semantic Errors: None
+    File: 1.cm
+
+    Program: random array manipulation and function calling
+*/
+
+int final_array[100];
+
+int size(int multiplier) {
+    return 50 * multiplier;
+}
+
+int main(void) {
+
+    int array[100];
+    int i;
+
+    i = 0;
+    while (i < size(2)) {
+        int inc;
+        inc = 1;
+        array[i] = input();
+        i = i + inc;
+    }
+
+    i = 0;
+    while (i < size(2)) {
+        final_array[i] = array[i];
+        i = i + 1;
+    }
+
+    if (i + 3 < size(1000)) {
+        int var;
+        if (var > 3) {
+            int yy;
+        }
+        i = i + 1;
+    }
+
+    output(final_array[size(2) - 1]);
+    output(final_array[0 + 10000 * 0]);
+
+    return final_array[size(2) / 2 + 1];
+}

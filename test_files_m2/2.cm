@@ -1,0 +1,27 @@
+/*
+    Created by: Boris Skurikhin, Brayden Klemens
+    File: 2.cm
+
+    Semantic Errors:
+    - undeclared variable x
+    - redefined variable y at the top scope
+    - calling a function with paramter type mismatches (expects int[] as 2nd parameter)
+*/
+
+int y;
+int y[20];
+
+
+int calling_function(int x, int y[]){
+    x = 10;
+    return y[x];
+}
+
+int main(){
+
+    if(x == 0){
+        calling_function(3, 3);
+    }
+
+    return 5;
+}

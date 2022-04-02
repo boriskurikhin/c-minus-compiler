@@ -1,0 +1,35 @@
+/*
+    Created by: Boris Skurikhin, Brayden Klemens
+    File: 4.cm
+
+    Semantic Errors:
+    - void() function called inside expression
+    - Too many arguments passed to a function call
+    - Function redefined with integer of same name and called (integer "no_return" encountered before function)
+*/
+
+void no_return() {
+    int k;
+    k = input();
+    output(k);
+}
+
+int func_with_args(int a, int b) {
+    return a + b;
+}
+
+int main() {
+
+    int exp;
+    int another;
+
+    exp = (9 + 9 * no_return() / 2) - 10;
+
+    another = func_with_args(1, 2, 3);
+
+    return 0;
+}
+
+void test(int no_return) {
+    no_return(); /* no_return now refers to the int parameter and not the function */
+}

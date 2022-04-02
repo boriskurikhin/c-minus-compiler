@@ -6,7 +6,7 @@ CUP=cup
 
 all: Main.class
 
-Main.class: absyn/*.java parser.java sym.java Lexer.java ShowTreeVisitor.java Scanner.java Main.java
+Main.class: absyn/*.java parser.java sym.java Lexer.java ShowTreeVisitor.java SemanticAnalyzer.java CodeGenerator.java Scanner.java Main.java
 
 %.class: %.java
 	$(JAVAC) $(CLASSPATH) $^

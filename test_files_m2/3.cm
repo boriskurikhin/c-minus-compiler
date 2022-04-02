@@ -1,0 +1,32 @@
+/*
+    Created by: Boris Skurikhin, Brayden Klemens
+    File: 3.cm
+
+    Semantic Errors:
+    - redefined function 'same_name' at the top level scope
+    - void function 'bad_return' attempts to return an int value
+    - it function does not return a value
+*/
+
+void same_name(int x, int y){
+    
+}
+
+void same_name(int x){
+
+}
+
+void bad_return(int hello){
+    hello = 5;
+    return hello;
+}
+
+int some_func(){
+    /*This does not return anything*/
+}
+
+
+
+
+
+

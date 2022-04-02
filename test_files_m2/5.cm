@@ -1,0 +1,41 @@
+/*
+    Created by: Boris Skurikhin, Brayden Klemens
+    File: 5.cm
+
+    Semantic Errors:
+    
+    - attempting to use an array as an integer
+    - Too many arguments passed to a function call
+    - Undeclared variable attempting to be used
+    - void attempted to return an expression
+    - variable x, y redefined in the same scope
+    - void() function called inside expression
+    - Insufficient arguments passed to a function call
+    - Undeclared function call
+    - int returning empty expression & int function not returning an expression
+*/
+
+int k(void) {
+    int m[100];
+    int a;
+    a = m * m;
+    output(5,5,5,5,5,55,5,5);
+    does_not_exist = 9;
+}
+
+void crazy(void) {
+    return crazy(3) * 3;
+}
+
+int too_few_arguments(int x, int y[]){
+    int x;
+    int y;
+    return x * crazy();
+}
+
+int main(){
+
+    too_few_arguments(3);
+    this_function_doesnt_exist(420);
+    return;
+}

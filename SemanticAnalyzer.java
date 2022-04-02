@@ -2,6 +2,11 @@ import absyn.*;
 import java.util.*;
 import java.util.regex.*;
 
+/*
+  Created by: Boris Skurikhin, Brayden Klemens
+  File Name: SemanticAnalyzer.java
+*/
+
 public class SemanticAnalyzer implements AbsynVisitor {
 
     public StringBuilder out;
@@ -129,12 +134,12 @@ public class SemanticAnalyzer implements AbsynVisitor {
     }
 
     private ANode find_function (String name) {
-        return symbol_table
-            .getOrDefault(name, new ArrayList<ANode>())
-            .stream()
-            .filter(ref -> (ref.def instanceof FunctionDeclaration))
-            .findFirst()
-            .orElse(null);
+        ANode last = find_node(name);
+        if (last == null)
+            return null;
+        if (last.def instanceof FunctionDeclaration)
+            return last;
+        return null;
     }
 
     /* END OF HELPER FUNCTIONS */
@@ -232,7 +237,7 @@ public class SemanticAnalyzer implements AbsynVisitor {
             exp.body.accept(this, level + 1);
 
         if (exp.type.getType().equals("INT") && !return_tracker.contains(level + 1))
-            System.err.println("Error: INT function may not return a value, on line: " + (exp.row + 1) + ", column: " + exp.col);
+            System.err.println("Warning: INT function may not return a value, on line: " + (exp.row + 1) + ", column: " + exp.col);
 
         print_scope(level + 1);
         indent(level + 1);
@@ -283,13 +288,13 @@ public class SemanticAnalyzer implements AbsynVisitor {
 
     public void visit( VariableExp exp, int level ) {
         if (!check_non_array_exists(exp.name))
-            System.err.println("Error: variable undeclared, at line " + (exp.row + 1) + ", column: " + (exp.col + 1));
+            System.err.println("Error: int variable \"" + exp.name + "\" undeclared (or check type), at line " + (exp.row + 1) + ", column: " + (exp.col + 1));
     }
 
     public void visit( ArrVariableExp exp, int level ){
         exp.expressions.accept(this, level);
         if(!check_array_exists(exp.name))
-            System.err.println("Error: array undeclared, at line " + (exp.row + 1) + ", column: " + (exp.col + 1));
+            System.err.println("Error: int array \"" + exp.name + "\"undeclared (or check type), at line " + (exp.row + 1) + ", column: " + (exp.col + 1));
     }
 
     public void visit( OpExp exp, int level) {
@@ -370,7 +375,7 @@ public class SemanticAnalyzer implements AbsynVisitor {
         FunctionDeclaration function_dec = (FunctionDeclaration) function_called.def;
 
         if (is_value_required && !function_dec.type.getType().equals("INT")) {
-            System.err.println("Error: calling VOID function as part of integer expression, at line: " + (exp.row) + ", column: " +
+            System.err.println("Error: calling VOID function as part of integer expression, at line: " + (exp.row + 1) + ", column: " +
                 (exp.col + 1));
             return;
         }
@@ -415,7 +420,7 @@ public class SemanticAnalyzer implements AbsynVisitor {
                 }
                 sig_index++;
             }
-            args_passed = args_passed.tail;
+            args_passed = args_passed.tail; 
         }
 
         if (sig_index != function_sig.size()) {
