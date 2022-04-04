@@ -60,7 +60,7 @@ class Main{
 
       if (bytes.toString("UTF-8").length() > 0 || display_ast) {
         System.setErr(og_err_stream);
-        System.err.println(bytes.toString("UTF-8"));
+        System.err.print(bytes.toString("UTF-8"));
         return;
       }
 
@@ -77,20 +77,20 @@ class Main{
 
       if (bytes.toString("UTF-8").length() > 0 || display_sym) {
         System.setErr(og_err_stream);
-        System.err.println(bytes.toString("UTF-8"));
+        System.err.print(bytes.toString("UTF-8"));
         return;
       }
       
       //M3
       CodeGenerator generator = new CodeGenerator(new StringBuilder());
-      result.accept(generator, 0);
+      generator.visit(result, generator, argv[filename_index].replace(".cm", ".tm"));
 
       writer.write(generator.out.toString());
       writer.close();
 
       if (bytes.toString("UTF-8").length() > 0) {
         System.setErr(og_err_stream);
-        System.err.println(bytes.toString("UTF-8"));
+        System.err.print(bytes.toString("UTF-8"));
       }
 
     } catch (Exception e) {

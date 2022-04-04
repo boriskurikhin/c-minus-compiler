@@ -10,11 +10,20 @@ public class ANode {
     int scope;
     String name;
     Absyn def;
+    int offset;
 
     public ANode (String name, Absyn def, int scope) {
         this.name = name;
         this.def = def;
         this.scope = scope;
+        offset = -1;
+    }
+
+    public ANode(String name, Absyn def, int scope, int offset) {
+        this.name = name;
+        this.def = def;
+        this.scope = scope;
+        this.offset = offset;
     }
 
     public String toString() {
