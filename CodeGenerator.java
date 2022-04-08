@@ -57,6 +57,13 @@ public class CodeGenerator implements AbsynVisitorM3 {
         return null;
     }
 
+    private boolean check_array_exists(String name) {
+        ANode last = find_node(name);
+        if (last == null)
+            return false;
+        return (last.def instanceof ArrayDeclaration);
+    }
+
     private ANode find_function (String name) {
         ANode last = find_node(name);
         if (last == null)
@@ -307,12 +314,14 @@ public class CodeGenerator implements AbsynVisitorM3 {
         exp.expressions.accept(this, offset, false);
         //TODO: handle writing to arrays passed by address into function
 
-        if (var.address) emitRM("LD", ac1, var.offset, fp, "load arr address into ac");
-        else {
+        if (var.address) {
+            System.out.println(exp.name + " is passed by address!");
+            emitRM("LD", ac1, var.offset, var.scope == 0 ? gp : fp, "load arr address into ac");
+        } else {
             emitRM("LDA", ac1, var.offset, var.scope == 0 ? gp : fp, "load array base address");
-            emitRO("ADD", ac, ac, ac1, "get final array base address");
         }
 
+        emitRO("ADD", ac, ac, ac1, "get final array base address");
         if (!isAddress)
             emitRM("LD", ac, 0, ac, "store value into index");
 
@@ -472,11 +481,18 @@ public class CodeGenerator implements AbsynVisitorM3 {
         while (args_passed != null) {
             int offs = offset - 2;
             if (args_passed.head != null) {
-                args_passed.head.accept(this, offs, false);
+
+                if (args_passed.head instanceof VariableExp) {
+                    VariableExp v = (VariableExp) args_passed.head;
+                    if (check_array_exists(v.name)) args_passed.head.accept(this, offs, true);
+                    else args_passed.head.accept(this, offs, false);
+                } else args_passed.head.accept(this, offs, false);
+    
                 emitRM("ST", ac, offs, fp, "load function argument");
+
+                args_passed = args_passed.tail;
                 offs--;
             }
-            args_passed = args_passed.tail; 
         }
         
         emitRM("ST", fp, offset, fp, "store");
