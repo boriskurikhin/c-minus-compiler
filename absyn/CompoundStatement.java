@@ -16,4 +16,8 @@ public class CompoundStatement extends Exp {
         visitor.visit(this, level);
     }
 
+    public int accept (AbsynVisitorM3 visitor, int offset, boolean isAddress) {
+        return visitor.visit(this, offset, isAddress);
+    }
+
 }
