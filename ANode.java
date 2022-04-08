@@ -11,11 +11,13 @@ public class ANode {
     String name;
     Absyn def;
     int offset;
+    boolean address;
 
     public ANode (String name, Absyn def, int scope) {
         this.name = name;
         this.def = def;
         this.scope = scope;
+        this.address = false;
         offset = -1;
     }
 
@@ -24,6 +26,15 @@ public class ANode {
         this.def = def;
         this.scope = scope;
         this.offset = offset;
+        this.address = false;
+    }
+
+    public ANode(String name, Absyn def, int scope, int offset, boolean addy) {
+        this.name = name;
+        this.def = def;
+        this.scope = scope;
+        this.offset = offset;
+        this.address = addy;
     }
 
     public String toString() {

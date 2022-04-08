@@ -95,6 +95,7 @@ class Main{
 
     } catch (Exception e) {
       /* do cleanup here -- possibly rethrow e */
+      System.out.println(e.getStackTrace()[0]);
       e.printStackTrace();
     }
   }

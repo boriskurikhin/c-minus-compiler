@@ -236,8 +236,8 @@ public class SemanticAnalyzer implements AbsynVisitor {
         if (exp.body != null)
             exp.body.accept(this, level + 1);
 
-        if (exp.type.getType().equals("INT") && !return_tracker.contains(level + 1))
-            System.err.println("Warning: INT function may not return a value, on line: " + (exp.row + 1) + ", column: " + exp.col);
+        // if (exp.type.getType().equals("INT") && !return_tracker.contains(level + 1))
+        //     System.err.println("Warning: INT function may not return a value, on line: " + (exp.row + 1) + ", column: " + exp.col);
 
         print_scope(level + 1);
         indent(level + 1);
