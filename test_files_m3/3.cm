@@ -1,0 +1,34 @@
+/*
+    Created by: Boris Skurikhin, Brayden Klemens
+    Semantic Errors: None
+    File: 3.cm
+
+    Program: passing arrays by reference and modifying them
+*/
+
+void foo (int a[], int x) {
+  int i;
+  i = 0;
+  while (i < 5) {
+    a[i] = a[i] * x;
+    output(a[i]);
+    i = i + 1;
+  }
+}
+
+void main(void) {
+  int a[5];
+  int i;
+  i = 0;
+  while (i < 5) {
+    a[i] = i;
+    i = i + 1;
+  }
+  foo(a, 10);
+  i = 0;
+  while (i < 5) {
+    a[i] = a[i] * 10;
+    output(a[i]);
+    i = i + 1;
+  }
+}

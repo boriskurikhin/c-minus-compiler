@@ -15,6 +15,7 @@ RUNNING!
 
     MILESTONE 1: "java -cp /usr/share/java/cup.jar:. Main test_files_m1/1.cm -a"
     MILESTONE 2: "java -cp /usr/share/java/cup.jar:. Main test_files_m2/1.cm -s"
+    MILESTONE 3: "java -cp /usr/share/java/cup.jar:. Main test_files_m3/1.cm -c"
 
 Where "test_files/1.cm" is a working code sample we provided.
 
@@ -23,6 +24,9 @@ Any error messages will be sent to stderr.
 
 MILESTONE 2: The tree will be dumped into an ".sym" file with the same name (in the same directory as the source file).
 Any error messages will be sent to stderr.
+
+MILESTONE 3: The tm instructions will be dumped into a ".tm" file with the same name (in the same directory as the source file).
+Any error message will be sent to stderr.
 
   To rebuild the parser, type "make clean" and type "make" again.
 
@@ -37,10 +41,16 @@ THE FIVE TEST FILES
 ==========
 
 MILESTONE 1: Can be found in the "test_files_m1" folder and labeled
-MILESTONE 2: Can be found in the "test_files_m2" folder and labeled
-
 1.cm, 2.cm, 3.cm, 4.cm and 5.cm respectively. The first file is a perfectly
 working file, while the rest have various errors!
+
+MILESTONE 2: Can be found in the "test_files_m2" folder and labeled
+1.cm, 2.cm, 3.cm, 4.cm and 5.cm respectively. The first file is a perfectly
+working file, while the rest have various errors!
+
+MILESTONE 3: Can be found in the "test_files_m2" folder and labeled
+1.cm, 2.cm, 3.cm, 4.cm, 5.cm, 6.cm, 7.cm, 8.cm, 9.cm and 0.cm respectively. 
+1-4 work fine. 5-6 exhibit syntax errors. 7-8 exhibit semantic errors. 9 throws a runtime error. 0 has semantic errors.
 
 ==========
 LIMITATIONS
@@ -58,6 +68,11 @@ MILESTONE 2:
 
 Our analyzer does not handle dead code after return statements, nor inside statements such as if, else, and while blocks.
 We report a warning if a return statement is not in the highest-level function scope, because we do not have code that checks all conditions to see if a return statement is guaranteed. We do not handle out of bounds indexes when using array variables.
+
+MILESTONE 3: 
+
+Our compiler is limited to integer parameters only and currently does not support passing arrays as parameters by reference more than once.
+Our compiler is not able to handle run time exceptions such as caching index out of range and dividing by zero.
 
 
 ===========
@@ -85,3 +100,9 @@ MILESTONE 2:
     3. Void variables are caught during stage 1 of compilation and not stage 2
 
     4. We print INT[] if the variable is an int array to make it extremely clear
+    
+MILESTONE 3:
+
+    1. We assume the runtime environment has at least 1024 slots of memory. We’re making this assumption because we have only tested our programs with this memory setting in the tiny machine.
+
+    2. We assume that the programs provided follow the c-minus specification. Otherwise the compiler will not be able to generate working assembly code.

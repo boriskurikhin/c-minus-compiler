@@ -1,0 +1,34 @@
+/*
+    Created by: Boris Skurikhin, Brayden Klemens
+    Semantic Errors: None
+    File: 4.cm
+
+    Program: find the smallest, and biggest number in array
+*/
+
+void main() {
+
+    int arr[10];
+    int i;
+    int smallest;
+    int biggest;
+
+    smallest = 9999;
+    biggest = 0;
+
+    i = 0;
+    while (i < 10) {
+        arr[i] = input();
+        if (arr[i] < smallest) {
+            smallest = arr[i];
+        }
+        if (arr[i] > biggest) {
+            biggest = arr[i];
+        }
+        i = i + 1;
+    }
+
+    /* prints the results */
+    output(smallest);
+    output(biggest);
+}

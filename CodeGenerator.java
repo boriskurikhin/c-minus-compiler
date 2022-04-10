@@ -1,6 +1,12 @@
 import absyn.*;
 import java.util.*;
 
+/*
+
+    Written by Boris Skurikhin and Brayden Klemens
+    M3
+*/
+
 public class CodeGenerator implements AbsynVisitorM3 {
 
     public StringBuilder out;
@@ -23,10 +29,10 @@ public class CodeGenerator implements AbsynVisitorM3 {
     public static final int OUT_ADDR = 7;
 
     Map<String, ArrayList<ANode>> symbol_table;
-    List<String> globalInstructions;
+    Queue<String> globalInstructions;
 
     public CodeGenerator(StringBuilder out) {
-        entry = 0;
+        entry = Integer.MAX_VALUE;
         emitLoc = 0;
         highEmitLoc = 0;
         globalOffset = 0;
@@ -35,7 +41,7 @@ public class CodeGenerator implements AbsynVisitorM3 {
         isParameter = false;
 
         symbol_table = new HashMap<String, ArrayList<ANode>>();
-        globalInstructions = new ArrayList<String>();
+        globalInstructions = new LinkedList<String>();
         this.out = out;
     }
 
@@ -64,6 +70,21 @@ public class CodeGenerator implements AbsynVisitorM3 {
         return (last.def instanceof ArrayDeclaration);
     }
 
+    private void delete_nodes_at_scope(int del_scope) {
+        Set<String> keys_to_remove = new HashSet<String>();
+        symbol_table.forEach((name, refs) -> {
+            ANode last = refs.get(refs.size() - 1);
+            if (last.scope == del_scope) {
+                refs.remove(refs.size() - 1); //TODO: refs.remove(last); ???
+                if (refs.size() == 0)
+                keys_to_remove.add(name);
+            }
+        });
+        symbol_table
+            .entrySet()
+            .removeIf(entry -> keys_to_remove.contains(entry.getKey()));
+    }
+
     private ANode find_function (String name) {
         ANode last = find_node(name);
         if (last == null)
@@ -75,11 +96,9 @@ public class CodeGenerator implements AbsynVisitorM3 {
 
     /* Printing functions */
 
-    public void emitGlobalInstructions(List<String> instructions) {
-        for (String instruction: instructions) {
-            instruction = String.format("%3d: %s\n", emitLoc, instruction);
-            out.append(instruction);
-            
+    public void emitGlobalInstructions() {
+        while (!globalInstructions.isEmpty()) {
+            out.append(String.format("%3d: %s\n", emitLoc, globalInstructions.poll()));
             emitLoc += 1;
             if (highEmitLoc < emitLoc) highEmitLoc = emitLoc;
         }
@@ -178,17 +197,19 @@ public class CodeGenerator implements AbsynVisitorM3 {
         emitRM("LD", ac, -2, fp, "load output value");
         emitRO("OUT", 0, 0, 0, "output");
         emitRM("LD", pc, -1, fp, "return to caller");
-        
-        try {
+       
         tree.accept(visitor, 0, false);
-        } catch(Exception e){
-            System.out.println(e.getStackTrace()[0]);
-        }
+
         int savedLoc2 = emitSkip(0);
         emitBackup(savedLoc);
         emitRM_Abs("LDA", pc, savedLoc2, "");
         emitRestore();
 
+        if (entry == Integer.MAX_VALUE) {
+            System.err.println("Runtime error: main function not found");
+            emitRO("HALT", 0, 0, 0, "");
+            return;
+        }
 
         emitComment("finale");
         emitRM("ST", fp, globalOffset, fp, "push old frame pointer");
@@ -237,7 +258,7 @@ public class CodeGenerator implements AbsynVisitorM3 {
                 emitRM("ST", ac, offset, fp, "store array size in memory");
             } else {
                 offset -= size;
-                globalInstructions.add(String.format(
+                globalInstructions.offer(String.format(
                     "%5s %d, %d(%d)\t%s",
                     "LDC",
                     ac1,
@@ -245,7 +266,7 @@ public class CodeGenerator implements AbsynVisitorM3 {
                     ac,
                     "load array size into ac1"
                 ));
-                globalInstructions.add(String.format(
+                globalInstructions.offer(String.format(
                     "%5s %d, %d(%d)\t%s",
                     "ST",
                     ac1,
@@ -269,7 +290,7 @@ public class CodeGenerator implements AbsynVisitorM3 {
 
         if (exp.name.equals("main")) {
             entry = emitLoc;
-            emitGlobalInstructions(globalInstructions);
+            emitGlobalInstructions();
         }
 
         emitComment("function decl: " + exp.name);
@@ -281,7 +302,9 @@ public class CodeGenerator implements AbsynVisitorM3 {
         offset = exp.body.accept(this, offset, false);
         emitRM("LD", pc, -1, fp, "return to caller");
 
+        delete_nodes_at_scope(globalScope);
         globalScope--;
+
         return offset;
     }
 
@@ -303,6 +326,8 @@ public class CodeGenerator implements AbsynVisitorM3 {
 
     public int visit( VariableExp exp, int offset, boolean isAddress) {
         ANode var = find_node(exp.name);
+        if (exp.expressions != null)
+            exp.expressions.accept(this, offset, false);
         if (isAddress) emitRM("LDA", ac, var.offset, var.scope == 0 ? gp : fp, "loading address of " + exp.name + " into ac");
         else emitRM("LD", ac, var.offset, var.scope == 0 ? gp : fp, "loading value of " + exp.name + " into ac");
         return offset;
@@ -315,7 +340,6 @@ public class CodeGenerator implements AbsynVisitorM3 {
         //TODO: handle writing to arrays passed by address into function
 
         if (var.address) {
-            System.out.println(exp.name + " is passed by address!");
             emitRM("LD", ac1, var.offset, var.scope == 0 ? gp : fp, "load arr address into ac");
         } else {
             emitRM("LDA", ac1, var.offset, var.scope == 0 ? gp : fp, "load array base address");
@@ -425,24 +449,29 @@ public class CodeGenerator implements AbsynVisitorM3 {
     }
 
     public int visit(ReturnExp exp, int offset, boolean isAddress) {
-        exp.expression.accept(this, offset, false);
+        if (exp.expression != null)
+            exp.expression.accept(this, offset, false);
         emitRM("LD", pc, -1, fp, "return to caller");
         return offset;
     }
 
     public int visit(IfExp exp, int offset, boolean isAddress) {
 
+        globalScope++;
         exp.test.accept(this, offset, false);
         int skip = emitSkip(1);
         int end = -1;
         
         exp.thenpart.accept(this, offset, false);
+        delete_nodes_at_scope(globalScope);
         
         if (exp.elsepart != null) {
             int skip2 = emitSkip(1);
             end = emitSkip(0);
 
             exp.elsepart.accept(this, offset, false);
+            delete_nodes_at_scope(globalScope);
+
             int save2 = emitSkip(0);
             emitBackup(skip2);
             emitRM_Abs("LDA", pc, save2, "jump past else");
@@ -452,11 +481,14 @@ public class CodeGenerator implements AbsynVisitorM3 {
         emitBackup(skip);
         emitRM_Abs("JEQ", ac, end, "jump if false");
         emitRestore();
+        globalScope--;
 
         return offset;
     }
 
     public int visit( RepeatExp exp, int offset, boolean isAddress){
+        globalScope++;
+
         int save1 = emitSkip(0);
         exp.test.accept(this, offset, false);
 
@@ -469,6 +501,8 @@ public class CodeGenerator implements AbsynVisitorM3 {
         emitRM_Abs("JEQ", ac, save3, "jump if true");
         emitRestore();
 
+        delete_nodes_at_scope(globalScope);
+        globalScope--;
         return offset;
     }
 
@@ -477,9 +511,9 @@ public class CodeGenerator implements AbsynVisitorM3 {
 
         ExpList args_passed = exp.args;
         FunctionDeclaration function_dec = (FunctionDeclaration) func.def;
+        int offs = offset - 2;
 
         while (args_passed != null) {
-            int offs = offset - 2;
             if (args_passed.head != null) {
 
                 if (args_passed.head instanceof VariableExp) {
@@ -509,5 +543,3 @@ public class CodeGenerator implements AbsynVisitorM3 {
     }
 
 }
-
-

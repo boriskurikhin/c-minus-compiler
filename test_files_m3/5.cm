@@ -1,0 +1,33 @@
+/*
+    Created by: Boris Skurikhin, Brayden Klemens
+    File: 5.cm
+    
+    Syntax Errors:
+
+    1. Invalid array size
+    2. Invalid array indexing expression
+    3. Invalid return expression
+
+*/
+
+int main(void) {
+    int x; int y; int z;
+    int y[bob];
+
+    y = 777;
+
+    while (y >= 0) y = y - 1;
+    while (x <= 777) {
+        {
+            {
+                x = x + 1;
+            }
+        }
+    }
+
+    y = x - 1;
+
+    y[!^^^^^] = 3;
+
+    return @@@@@@@@!;
+}

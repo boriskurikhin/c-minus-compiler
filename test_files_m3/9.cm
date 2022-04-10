@@ -1,5 +1,13 @@
+/*
+    Created by: Boris Skurikhin, Brayden Klemens
+    File: 9.cm
+
+    Runtime error: main function not found
+*/
+
+int x[10]; 
  
-int minloc(int a[], int low, int high) { 
+int sorting_algorithm(int a[], int low, int high) { 
    int i; int x; int k; 
    k = low; 
    x = a[low]; 
@@ -14,9 +22,10 @@ int minloc(int a[], int low, int high) {
    return k; 
 } 
 void sort(int a[], int low, int high) { 
-   int i; int k; int t; 
+   int i; int k; 
    i = low; 
    while (i < high - 1) { 
+      int t; 
       k = minloc(a, i, high); 
       t = a[k]; 
       a[k] = a[i]; 
@@ -25,8 +34,7 @@ void sort(int a[], int low, int high) {
    } 
 } 
  
-void main(void) { 
-   int x[10]; 
+void entry(void) { 
    int i; 
    i = 0; 
    while (i < 10) { 
