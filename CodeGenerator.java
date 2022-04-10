@@ -334,8 +334,8 @@ public class CodeGenerator implements AbsynVisitorM3 {
 
         if (check_array_exists(exp.name)) {
             boolean isPointer = ((ArrayDeclaration)(var.def)).passAsAddress;
-            if (isPointer) emitRM("LD", ac, var.offset, fp, "loading address pointer of " + exp.name + " into ac");
-            else emitRM("LDA", ac, var.offset, fp, "loading address of " + exp.name + " into ac");
+            if (isPointer) emitRM("LD", ac, var.offset, var.scope == 0 ? gp : fp, "loading address pointer of " + exp.name + " into ac");
+            else emitRM("LDA", ac, var.offset, var.scope == 0 ? gp : fp, "loading address of " + exp.name + " into ac");
         } else {
             if (isAddress) emitRM("LDA", ac, var.offset, var.scope == 0 ? gp : fp, "loading address of " + exp.name + " into ac");
             else emitRM("LD", ac, var.offset, var.scope == 0 ? gp : fp, "loading value of " + exp.name + " into ac");
@@ -525,12 +525,6 @@ public class CodeGenerator implements AbsynVisitorM3 {
 
         while (args_passed != null) {
             if (args_passed.head != null) {
-
-                // if (args_passed.head instanceof VariableExp) {
-                //     VariableExp v = (VariableExp) args_passed.head;
-                //     if (check_array_exists(v.name)) args_passed.head.accept(this, offs, true);
-                //     else args_passed.head.accept(this, offs, false);
-                // } else 
 
                 args_passed.head.accept(this, offs, false);
                 emitRM("ST", ac, offs, fp, "load function argument");
