@@ -1,34 +1,46 @@
 /*
     Created by: Boris Skurikhin, Brayden Klemens
-    Semantic Errors: None
+    Errors: None
     File: 3.cm
 
-    Program: passing arrays by reference and modifying them
+    Program: finds peak element in array
 */
 
-void foo (int a[], int x) {
-  int i;
-  i = 0;
-  while (i < 5) {
-    a[i] = a[i] * x;
-    output(a[i]);
-    i = i + 1;
-  }
+int find_peak_element(int nums[], int size) {
+    int left;
+    int right;
+
+    left = 0;
+    right = size - 1; /* Don't to overflow */
+
+    while (left < right) {
+
+        int mid;
+
+        mid = left + (right - left * 1) / 2;
+        
+        if (nums[mid] > nums[mid + 1])
+            right = mid;
+        else {
+            left = mid + 1;
+        }
+
+    }
+
+    return left;
 }
 
 void main(void) {
-  int a[5];
-  int i;
-  i = 0;
-  while (i < 5) {
-    a[i] = i;
-    i = i + 1;
-  }
-  foo(a, 10);
-  i = 0;
-  while (i < 5) {
-    a[i] = a[i] * 10;
-    output(a[i]);
-    i = i + 1;
-  }
+    int test[4];
+    int i;
+    int peak_index;
+
+    test[0] = 1;
+    test[1] = 2;
+    test[2] = 3; /* The peak index is 2! */
+    test[3] = 1;
+
+    peak_index = find_peak_element(test, 4);
+
+    output(peak_index);
 }

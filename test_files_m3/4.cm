@@ -3,7 +3,7 @@
     Errors: None
     File: 4.cm
 
-    Program: sorts the array
+    sorts the array
 */
 
 int x[10]; 
