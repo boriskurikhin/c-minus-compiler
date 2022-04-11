@@ -356,6 +356,7 @@ public class CodeGenerator implements AbsynVisitorM3 {
         else emitRM("LDA", ac1, var.offset, var.scope == 0 ? gp : fp, "load array base address");
 
         emitRO("ADD", ac, ac, ac1, "get final array base address");
+
         if (!isAddress)
             emitRM("LD", ac, 0, ac, "store value into index");
 

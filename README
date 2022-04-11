@@ -1,6 +1,7 @@
 A JFlex + Cup implementation for the C- programming language written by Boris Skurikhin & Brayden Klemens
 
 -- This implementation references/uses starter code provided by Fei Song --
+-- A few test files for M3 were provided by fei song -- 
 
 ========
 BUILDING
@@ -15,7 +16,11 @@ RUNNING!
 
     MILESTONE 1: "java -cp /usr/share/java/cup.jar:. Main test_files_m1/1.cm -a"
     MILESTONE 2: "java -cp /usr/share/java/cup.jar:. Main test_files_m2/1.cm -s"
-    MILESTONE 3: "java -cp /usr/share/java/cup.jar:. Main test_files_m3/1.cm -c"
+
+    MILESTONE 3: 
+        "java -cp /usr/share/java/cup.jar:. Main test_files_m3/1.cm -c"
+        "TMSimulator/tm test_files_m3/1.tm"
+
 
 Where "test_files/1.cm" is a working code sample we provided.
 
@@ -71,8 +76,7 @@ We report a warning if a return statement is not in the highest-level function s
 
 MILESTONE 3: 
 
-Our compiler is limited to integer parameters only and currently does not support passing arrays as parameters by reference more than once.
-Our compiler is not able to handle run time exceptions such as caching index out of range and dividing by zero.
+Our compiler does not throw any runtime errors other than lack of main function.
 
 
 ===========
